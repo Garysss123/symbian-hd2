@@ -1,0 +1,77 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+index 201d413..ada9aa2 100644
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -30,11 +30,19 @@ static TUint32 HtcleoFatLogCrc32(const TDesC8& aData)
+ 	return ~crc;
+ 	}
+ 
+-static void HtcleoWriteFatBootRecord()
++static TInt HtcleoFatLogStageResult(TUint32 aStage,TInt aResult)
++	{
++	const TUint32 magnitude=static_cast<TUint32>(
++		aResult<0 ? -aResult : aResult)&0xffffu;
++	return static_cast<TInt>(0xe0000000u|((aStage&0xffu)<<16)|magnitude);
++	}
++
++static TInt HtcleoWriteFatBootRecord()
+ 	{
+ 	RFs fs;
+-	if (fs.Connect()!=KErrNone)
+-		return;
++	TInt result=fs.Connect();
++	if (result!=KErrNone)
++		return HtcleoFatLogStageResult(1u,result);
+ 
+ 	TVolumeInfo volume;
+ 	TInt volumeResult=KErrNotReady;
+@@ -48,7 +56,7 @@ static void HtcleoWriteFatBootRecord()
+ 	if (volumeResult!=KErrNone)
+ 		{
+ 		fs.Close();
+-		return;
++		return HtcleoFatLogStageResult(2u,volumeResult);
+ 		}
+ 
+ 	_LIT(KLogPath,"E:\\Symbian3\\BOOTLOG.TXT");
+@@ -56,11 +64,22 @@ static void HtcleoWriteFatBootRecord()
+ 	TBuf8<160> record(KBody);
+ 	record.AppendFormat(_L8("CRC32=%08X\r\n"),HtcleoFatLogCrc32(KBody));
+ 	RFile file;
+-	if (file.Replace(fs,KLogPath,EFileWrite|EFileShareExclusive)==KErrNone)
++	result=file.Replace(fs,KLogPath,EFileWrite|EFileShareExclusive);
++	if (result!=KErrNone)
+ 		{
+-		if (file.Write(record)==KErrNone)
+-			(void)file.Flush();
+-		file.Close();
++		fs.Close();
++		return HtcleoFatLogStageResult(3u,result);
+ 		}
++	TUint32 failureStage=4u;
++	result=file.Write(record);
++	if (result==KErrNone)
++		{
++		failureStage=5u;
++		result=file.Flush();
++		}
++	file.Close();
+ 	fs.Close();
++	if (result!=KErrNone)
++		return HtcleoFatLogStageResult(failureStage,result);
++	return KErrNone;
+ 	}
+@@ -78,7 +97,12 @@ GLDEF_C TInt E32Main()
+ 
+ 	fsStart.StartSystem();
+ 			
+-	HtcleoWriteFatBootRecord();
++	const TInt htcleoFatLogResult=HtcleoWriteFatBootRecord();
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++	// One post-write probe remains until the record is verified from the SD.
++	asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
++		: : "r"(htcleoFatLogResult) : "r0", "memory");
++#endif
+ 
+ 	fsStart.Close();
+ 	return(0);

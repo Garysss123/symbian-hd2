@@ -1,0 +1,18 @@
+#include <variant.mmh>
+#include "kernel/kern_ext.mmh"
+
+TARGET          VariantTarget(ekeyb,dll)
+TARGETTYPE      kext
+ROMTARGET       ekeyb.dll
+
+SYSTEMINCLUDE   AsspNKernIncludePath
+SYSTEMINCLUDE   ../specific
+
+SOURCEPATH      .
+SOURCE          htcleo_keys.cpp
+
+LIBRARY         PlatformLib
+
+UID             0x100039cf 0x100000db
+VENDORID        0x70000001
+CAPABILITY      all

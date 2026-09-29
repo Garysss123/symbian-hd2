@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the source-built ECom client DLL.
+// The server and test targets are intentionally excluded from this iteration.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/ossrv/lowlevellibsandfws/pluginfw/Framework/MMPFiles/ECom.mmp

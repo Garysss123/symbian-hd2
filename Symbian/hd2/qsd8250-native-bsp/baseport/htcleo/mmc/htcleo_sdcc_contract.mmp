@@ -1,0 +1,12 @@
+/* Compile-only SDCC2 contract. This static library is not included in ROM. */
+
+TARGET          htcleo_sdcc_contract.lib
+TARGETTYPE      lib
+
+SOURCEPATH      .
+SOURCE          htcleo_sdcc_contract.cpp
+
+USERINCLUDE     .
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+CAPABILITY      all

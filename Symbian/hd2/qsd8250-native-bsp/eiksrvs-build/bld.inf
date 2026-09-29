@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the Eikon UI server startup trace.
+// Only eiksrvs.exe is rebuilt; the shared eiksrv/eikcore binaries remain the
+// verified parent versions.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/commonuisupport/uikon/group/EIKSRVS.MMP

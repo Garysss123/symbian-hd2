@@ -1,0 +1,29 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -1942,6 +1942,12 @@ TInt TFSStartup::LocalDriveInit()
+ 		Panic(ELitDriveMappingFileFail,r);
+ #endif		
+ 
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++    // HTCLEO_POST_LOCAL_DRIVE_MAPPING_PROBE: split mapping from system-drive setup.
++    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++        : : : "r0", "memory");
++#endif
++
+ 	SetSystemDrive();
+ 		
+ #if defined(_LOCKABLE_MEDIA)	
+@@ -1952,12 +1958,6 @@ TInt TFSStartup::LocalDriveInit()
+ #ifdef LOAD_PATCH_LDD
+ 	LoadPatchLDDs();
+ #endif	
+-
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-    // HTCLEO_PRE_STARTUP_INIT_COMPLETE_PROBE: split mapping from F32 handshake.
+-    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-        : : : "r0", "memory");
+-#endif
+ 	
+ 	// Notify file server that local fs initialisation complete
+ 	TRequestStatus status;

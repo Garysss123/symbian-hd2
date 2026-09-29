@@ -1,0 +1,10 @@
+// Isolated HTCLEO build unit for StartC32 client and configurator tracing.
+// c32root.dll and c32start.exe are rebuilt together because the latter links
+// the former; c32exe.exe and all CPM/provider modules remain parent bytes.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/commsfw/commsprocess/commsrootserverconfig/group/c32root.mmp
+/root/symbian3-full/sf/os/commsfw/commsprocess/commsrootserverconfig/configurator/group/c32start.mmp

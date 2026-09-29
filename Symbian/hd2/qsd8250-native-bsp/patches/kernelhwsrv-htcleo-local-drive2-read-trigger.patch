@@ -1,0 +1,33 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2194,5 +2194,25 @@ TInt TFSStartup::MountRemovableDrives()
+     TInt htcleoDrive2Connect=htcleoDrive2.Connect(2,htcleoChanged);
+     if (htcleoDrive2Connect==KErrNone)
+         {
++        // Caps is intentionally passive and no longer powers up an MMC stack.
++        // A sector-zero read is the smallest read-only request that forces the
++        // generic MMC stack to acquire/power the card and issue real commands.
++        TBuf8<512> htcleoSector0;
++        htcleoSector0.SetLength(512);
++        TInt htcleoReadResult=htcleoDrive2.Read(0,512,htcleoSector0);
++        if (htcleoReadResult!=KErrNone)
++            {
++            TInt htcleoSdccDiagnostic=UserSvr::HalFunction(
++                EHalGroupPlatformSpecific1,0,0,0);
++            if (((TUint32)htcleoSdccDiagnostic&0xf0000000u)==0xd0000000u)
++                htcleoDrive2CapsResult=htcleoSdccDiagnostic;
++            else
++                {
++                // CB00xxxx identifies Read; low 16 bits are abs(error).
++                htcleoDrive2CapsResult=(TInt)(0xcb000000u | ((TUint32)(-htcleoReadResult)&0xffffu));
++                }
++            }
++        else
++            {
+         TLocalDriveCapsBuf htcleoCaps;
+         TInt htcleoCapsResult=htcleoDrive2.Caps(htcleoCaps);
+         if (htcleoCapsResult==KErrNone)
+@@ -2215,1 +2235,2 @@ TInt TFSStartup::MountRemovableDrives()
++            }
+         htcleoDrive2.Disconnect();

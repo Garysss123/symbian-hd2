@@ -1,0 +1,15 @@
+/* ARM helper linked only into variant euser for iteration 145. */
+
+TARGET          htcleo_heap_chunk_result_arm.lib
+TARGETTYPE      lib
+
+ALWAYS_BUILD_AS_ARM
+
+SOURCEPATH      .
+SOURCE          htcleo_heap_chunk_result_arm.cpp
+
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+CAPABILITY      all
+VENDORID        0x70000001
+SMPSAFE

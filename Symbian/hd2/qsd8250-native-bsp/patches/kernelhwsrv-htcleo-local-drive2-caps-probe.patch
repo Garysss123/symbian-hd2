@@ -1,0 +1,51 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2170,9 +2170,6 @@ TInt TFSStartup::MountRemovableDrives()
+     {
+     DEBUGPRINT("TFSStartup::MountRemovableDrives");
+ 
+-#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+-    TInt htcleoMountResult=KErrNotFound;
+-#endif
+ 	for (TInt i=0;i<iMapCount;i++)
+ 		{
+ 		SLocalDriveMappingInfo* infoPtr = &iDriveMappingInfo[i];
+@@ -2180,10 +2177,6 @@ TInt TFSStartup::MountRemovableDrives()
+ 			continue;
+         TInt r = MountFileSystem(iDriveMappingInfo[i]);
+         DEBUGPRINT2("Mount drive (%c) -> %d",'A'+iDriveMappingInfo[i].iDriveNumber,r);
+-#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+-        if (infoPtr->iDriveNumber==EDriveE)
+-            htcleoMountResult=r;
+-#endif
+ 		if (r==KErrDisMounted)
+ 			{
+ 			// We have encountered a corrupt internal drive which should be swapped with another internal drive 
+@@ -2192,6 +2185,25 @@ TInt TFSStartup::MountRemovableDrives()
+ 		}
+ #ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+-    asm volatile("mov r0,%0\n\t.word 0xe7f000f0" : : "r"(htcleoMountResult) : "r0", "memory");
++    // Iteration 308 distinguishes a missing local-media registration from a
++    // registered drive whose capabilities do not describe a removable slot.
++    // Local drive 2 is the HTC Leo SD slot and maps to E: by default.
++    TInt htcleoDrive2CapsResult=KErrNotFound;
++    TBusLocalDrive htcleoDrive2;
++    TBool htcleoChanged;
++    TInt htcleoDrive2Connect=htcleoDrive2.Connect(2,htcleoChanged);
++    if (htcleoDrive2Connect==KErrNone)
++        {
++        TLocalDriveCapsBuf htcleoCaps;
++        TInt htcleoCapsResult=htcleoDrive2.Caps(htcleoCaps);
++        if (htcleoCapsResult==KErrNone)
++            htcleoDrive2CapsResult=(htcleoCaps().iDriveAtt&KDriveAttRemovable) ? KErrNone : 1;
++        else
++            htcleoDrive2CapsResult=htcleoCapsResult;
++        htcleoDrive2.Disconnect();
++        }
++    else
++        htcleoDrive2CapsResult=htcleoDrive2Connect;
++    asm volatile("mov r0,%0\n\t.word 0xe7f000f0" : : "r"(htcleoDrive2CapsResult) : "r0", "memory");
+ #endif
+     return KErrNone;
+     }

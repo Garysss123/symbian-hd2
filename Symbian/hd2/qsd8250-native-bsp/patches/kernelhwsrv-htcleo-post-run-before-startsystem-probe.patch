@@ -1,0 +1,23 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -94,14 +94,14 @@ GLDEF_C TInt E32Main()
+ 	fsStart.Init();
+ 	
+ 	fsStart.Run();
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++	// HTCLEO_POST_RUN_BOUNDARY_PROBE: split Run/removable mount from StartSystem.
++	asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++		: : : "r0", "memory");
++#endif
+ 
+ 	fsStart.StartSystem();
+ 			
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-	// HTCLEO_POST_STARTSYSTEM_BOUNDARY_PROBE: split StartSystem from F32 I/O.
+-	asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-		: : : "r0", "memory");
+-#endif
+ 	(void)HtcleoWriteFatBootRecord();
+ 
+ 	fsStart.Close();

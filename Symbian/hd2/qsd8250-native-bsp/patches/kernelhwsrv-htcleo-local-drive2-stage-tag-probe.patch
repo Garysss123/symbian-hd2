@@ -1,0 +1,19 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2201,3 +2201,6 @@ TInt TFSStartup::MountRemovableDrives()
+         else
+-            htcleoDrive2CapsResult=htcleoCapsResult;
++            {
++            // CA00xxxx identifies Caps; low 16 bits are abs(error).
++            htcleoDrive2CapsResult=(TInt)(0xca000000u | ((TUint32)(-htcleoCapsResult)&0xffffu));
++            }
+         htcleoDrive2.Disconnect();
+@@ -2205,3 +2208,6 @@ TInt TFSStartup::MountRemovableDrives()
+     else
+-        htcleoDrive2CapsResult=htcleoDrive2Connect;
++        {
++        // C000xxxx identifies Connect; low 16 bits are abs(error).
++        htcleoDrive2CapsResult=(TInt)(0xc0000000u | ((TUint32)(-htcleoDrive2Connect)&0xffffu));
++        }
+     asm volatile("mov r0,%0\n\t.word 0xe7f000f0" : : "r"(htcleoDrive2CapsResult) : "r0", "memory");

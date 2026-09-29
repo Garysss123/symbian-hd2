@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the STEM SSM command-list resources.
+// Keeping this separate avoids parsing unrelated STEM binary projects when
+// only the startup policy resources need to be regenerated.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/incubator/stemkit/startup/ssmcmdlists.mmp

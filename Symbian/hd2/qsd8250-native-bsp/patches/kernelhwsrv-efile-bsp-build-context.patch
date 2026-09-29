@@ -1,0 +1,14 @@
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,8 +23,8 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
+ MACRO			__HTCLEO_EFILE_E32MAIN_SCREEN_PROBE__

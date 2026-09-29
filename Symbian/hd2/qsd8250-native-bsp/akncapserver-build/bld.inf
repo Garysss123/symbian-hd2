@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the AknCapServer process startup trace.
+// The target already exists in the full ROM; this rebuilds only the exact
+// executable whose AppArc rendezvous returned KErrServerTerminated on 437.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/uifw/AknGlobalUI/AknCapServer/group/AknCapServer.mmp

@@ -1,0 +1,75 @@
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -27,6 +27,7 @@ TARGET			efile.exe
+ #include "f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++MACRO			__HTCLEO_EFILE_E32MAIN_SCREEN_PROBE__
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+diff --git a/userlibandfileserver/fileserver/sfile/sf_main.cpp b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+--- a/userlibandfileserver/fileserver/sfile/sf_main.cpp
++++ b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+@@ -19,6 +19,7 @@
+ #include "sf_plugin.h"
+ #include "sf_file_cache.h"	// for TClosedFileUtils
+ #include "sf_memory_man.h"
++#include <hal.h>
+ 
+ #ifdef __WINS__
+ #include <emulator.h>
+@@ -529,11 +530,52 @@ TBool ServerIsRunning()
+ 	return(EFalse);
+ 	}
+ 
++#ifdef __HTCLEO_EFILE_E32MAIN_SCREEN_PROBE__
++/*
++ * Iteration 136's sole non-halting checkpoint.  Reaching this renderer proves
++ * the source-built EFILE thread has crossed kernel-to-user startup and entered
++ * E32Main, so one positive result covers both conservative gates 3 and 4.
++ */
++static void HtcleoEfileE32MainScreenProbe()
++	{
++	TInt address = 0;
++	if (HAL::Get(HAL::EDisplayMemoryAddress, address) != KErrNone || !address)
++		return;
++
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KCyan = 0x07ff;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KMagenta = 0xf81f;
++	volatile TUint16* const fb = (volatile TUint16*)address;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KCyan;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block digit 4, centred in portrait orientation. */
++			const TBool left = x >= 144 && x < 176 && y >= 256 && y < 432;
++			const TBool middle = x >= 144 && x < 336 && y >= 400 && y < 432;
++			const TBool right = x >= 304 && x < 336 && y >= 224 && y < 576;
++			if (left || middle || right)
++				colour = KMagenta;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	}
++#endif
++
+ TInt E32Main()
+ //
+ // The file server.
+ //
+ 	{
++#ifdef __HTCLEO_EFILE_E32MAIN_SCREEN_PROBE__
++	HtcleoEfileE32MainScreenProbe();
++#endif
+ 	if (ServerIsRunning())
+ 		return(KErrNone);
+ 

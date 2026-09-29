@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the actual ROM Eikon server UI DLL.
+// The STEM break-dependency target is mapped to sys\bin\eiksrvui.dll by the
+// full-ROM recipe; the ordinary EikStd eiksrvui.dll is not the loaded image.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/incubator/stemkit/breakdeps/EIKSRVUI.MMP

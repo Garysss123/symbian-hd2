@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Keep old released HSPS sources buildable without changing global GCCE policy. -->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="hspsthemeserver_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+  </var>
+</build>

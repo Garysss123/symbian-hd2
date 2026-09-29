@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the STEM OpenC backend DLL.
+// The full incubator bld.inf contains unrelated compatibility targets; this
+// unit rebuilds only the backend image that the ROM maps to sys\bin\backend.dll.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/incubator/stemkit/breakdeps/backend.mmp

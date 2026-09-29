@@ -1,0 +1,124 @@
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,66 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE4_E32MAIN_ARM_UDF_PROBE__)
++/* Iteration 144: proven ARM exception path at EFILE E32Main. */
++static void HtcleoGate4EfileE32MainArmScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkCyan = 0x03ef;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KDarkCyan;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			const TBool left = x >= 144 && x < 176 && y >= 256 && y < 432;
++			const TBool middle = x >= 144 && x < 336 && y >= 400 && y < 432;
++			const TBool right = x >= 304 && x < 336 && y >= 224 && y < 576;
++			if (left || middle || right)
++				colour = KYellow;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate4EfileE32MainArmUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xe7f000f0u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe354000au) /* cmp r4,#10 */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xea000000u)
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x48313434u) /* ASCII H144 */
++		return EFalse;
++
++	HtcleoGate4EfileE32MainArmScreenProbe();
++	aContext->iR15 += 4;
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +237,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE4_E32MAIN_ARM_UDF_PROBE__)
++	if (HtcleoHandleGate4EfileE32MainArmUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,12 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++MACRO			__HTCLEO_EFILE_GATE4_ARM_CALL_PROBE__
++STATICLIBRARY	htcleo_efile_gate4_arm.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+diff --git a/userlibandfileserver/fileserver/sfile/sf_main.cpp b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+--- a/userlibandfileserver/fileserver/sfile/sf_main.cpp
++++ b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+@@ -21,5 +21,9 @@
+ #include "sf_memory_man.h"
+ 
++#ifdef __HTCLEO_EFILE_GATE4_ARM_CALL_PROBE__
++extern "C" void HtcleoGate4ArmProbe();
++#endif
++
+ #ifdef __WINS__
+ #include <emulator.h>
+ #include <e32wins.h>
+@@ -534,5 +538,10 @@ TInt E32Main()
+ // The file server.
+ //
+ 	{
++#ifdef __HTCLEO_EFILE_GATE4_ARM_CALL_PROBE__
++	/* Sole iteration-144 checkpoint: first E32Main source action. */
++	HtcleoGate4ArmProbe();
++#endif
++
+ 	if (ServerIsRunning())
+ 		return(KErrNone);

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Isolated legacy Xn layout-engine GCCE compatibility. -->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="xn3layoutengine_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+    <!-- Promote only the six pre-existing RTTI/vtable symbols named by the
+         frozen 278-export ABI; object code and runtime control flow remain
+         unchanged. -->
+    <set name="CC" value="/path/to/hd2-legacy-lab/Symbian/scripts/htcleo-gcce-xn3layoutengine-cc-wrapper.sh"/>
+  </var>
+</build>

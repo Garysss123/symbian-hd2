@@ -1,0 +1,9 @@
+set mtype 2524
+set ramaddr 0x11800000
+set ramsize 0x1e400000
+set initrd_offset 0x00a00000
+set KERNEL zImage
+set initrd initrd.gz
+set cmdline "rel_path=Symbian3 symbian_stage=marker001"
+boot
+

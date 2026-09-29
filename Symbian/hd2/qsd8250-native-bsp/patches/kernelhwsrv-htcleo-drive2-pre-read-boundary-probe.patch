@@ -1,0 +1,20 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2199,12 +2199,12 @@ TInt TFSStartup::MountRemovableDrives()
+         // generic MMC stack to acquire/power the card and issue real commands.
+         TBuf8<512> htcleoSector0;
+         htcleoSector0.SetLength(512);
+-        TInt htcleoReadResult=htcleoDrive2.Read(0,512,htcleoSector0);
+ #if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-        // HTCLEO_DRIVE2_READ_RESULT_PROBE: raw sector-zero read completion.
+-        asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
+-            : : "r"(htcleoReadResult) : "r0", "memory");
++        // HTCLEO_DRIVE2_PRE_READ_BOUNDARY_PROBE: bracket sector-zero Read().
++        asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++            : : : "r0", "memory");
+ #endif
++        TInt htcleoReadResult=htcleoDrive2.Read(0,512,htcleoSector0);
+         if (htcleoReadResult!=KErrNone)
+             {
+             TInt htcleoSdccDiagnostic=UserSvr::HalFunction(

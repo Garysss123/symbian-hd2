@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the standard OpenWFC engine.
+// The ROM uses libWFC.dll directly; do not rebuild the Syborg alias target.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/graphics/graphicscomposition/openwfcompositionengine/group/openwfc.mmp

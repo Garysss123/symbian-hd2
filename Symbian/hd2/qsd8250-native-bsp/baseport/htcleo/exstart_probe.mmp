@@ -1,0 +1,26 @@
+/*
+ * HTC Leo iteration-135 EXSTART build.
+ *
+ * Keep the generic EKA2 source and ABI, but compile the one source-level
+ * gate-2 screen checkpoint into this platform's exstart.dll only.
+ */
+
+target              exstart.dll
+targettype          kext
+
+#include "../../../../os/kernelhwsrv/kernel/eka/kernel/kern_ext.mmh"
+
+sourcepath          ../../../../os/kernelhwsrv/kernel/eka/kernel
+source              exstart.cpp
+
+macro               __CPU_QSD8250__
+macro               __HTCLEO_GATE2_SCREEN_PROBE__
+
+epocallowdlldata
+
+uid                 0x1000008d 0x10004087
+VENDORID            0x70000001
+
+romtarget           exstart.dll
+capability          all
+SMPSAFE

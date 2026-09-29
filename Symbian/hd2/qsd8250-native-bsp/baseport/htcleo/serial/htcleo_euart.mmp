@@ -1,0 +1,18 @@
+#include <variant.mmh>
+#include "kernel/kern_ext.mmh"
+
+TARGET          VariantTarget(euart1,pdd)
+TARGETTYPE      pdd
+ROMTARGET       euart1.pdd
+
+SYSTEMINCLUDE   ../specific
+SYSTEMINCLUDE   +/include/platform/drivers
+
+SOURCEPATH      .
+SOURCE          htcleo_euart.cpp
+
+LIBRARY         PlatformLib
+
+UID             0 0x1000015b
+VENDORID        0x70000001
+CAPABILITY      all

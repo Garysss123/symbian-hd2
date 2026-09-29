@@ -1,0 +1,34 @@
+{
+  "parent_package": "840-symbian3-full-home-background-priority-ab-incremental",
+  "parent_sha256": "fe998b6beb289709b764fced9f0e1f01f3ad73c154c0ae21d40168024c6658dd",
+  "binary_seeds": [
+    "gsdevicemanagementplugin.dll",
+    "aboutgsplugin.dll",
+    "about.exe"
+  ],
+  "ecom_resources": [
+    "gsdevicemanagementplugin.rsc",
+    "aboutgsplugin.rsc"
+  ],
+  "data_resources": [
+    "resource/gsdevicemanagementpluginrsc.rsc",
+    "resource/gsdevicemanagementpluginrsc.r01",
+    "resource/apps/gsdevicemanagementplugin.mif",
+    "resource/plugins/aboutgspluginrsc.rsc",
+    "resource/plugins/aboutgspluginrsc.r01",
+    "resource/apps/aboutgsplugin.mif",
+    "resource/apps/about.mbm",
+    "resource/apps/about.mif",
+    "resource/apps/about_aif.mif",
+    "resource/apps/about.rsc",
+    "resource/apps/about.r01",
+    "resource/apps/about_oss_text.rsc",
+    "resource/apps/about_oss_text.r01",
+    "resource/apps/about_oss_part_text.rsc",
+    "resource/apps/about_oss_part_text.r01",
+    "resource/apps/about_oss_other_text.rsc",
+    "resource/apps/about_oss_other_text.r01",
+    "private/10003a3f/apps/about_reg.rsc"
+  ],
+  "catalog_rescan": false
+}

@@ -1,0 +1,97 @@
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -27,7 +27,7 @@ TARGET			efile.exe
+ #include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
+-MACRO			__HTCLEO_EFILE_E32MAIN_SCREEN_PROBE__
++FIRSTLIB		htcleo_efile_entry.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,69 @@
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_UDF_PROBE__)
++/*
++ * Iteration 137's sole non-halting screen renderer.  It is called only for
++ * the EFILE-specific ARM UDF at _E32Startup.  The following two stock EKA2
++ * entry instructions and the initial entry reason qualify the hit without a
++ * ROM-placement address, so full-ROM layout changes do not weaken the probe.
++ */
++static void HtcleoGate3UserEntryScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkGreen = 0x0200;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KRed = 0xf800;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KDarkGreen;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block digit 3, centred in portrait orientation. */
++			const TBool top = y >= 240 && y < 272 && x >= 144 && x < 336;
++			const TBool middle = y >= 384 && y < 416 && x >= 144 && x < 336;
++			const TBool bottom = y >= 528 && y < 560 && x >= 144 && x < 336;
++			const TBool right = x >= 304 && x < 336 && y >= 240 && y < 560;
++			if (top || middle || bottom || right)
++				colour = KRed;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate3UserEntryUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		(aContext->iCpsr & ECpuThumb) || aContext->iR4 > 1)
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xe7f000f0u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe3540001u) /* cmp r4,#1 */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xea000000u) /* b over unique-ID word */
++		return EFalse;
++
++	HtcleoGate3UserEntryScreenProbe();
++	aContext->iR15 += 4; /* Resume at the untouched CMP after the UDF. */
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +240,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_UDF_PROBE__)
++	if (HtcleoHandleGate3UserEntryUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12

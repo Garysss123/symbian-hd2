@@ -1,0 +1,6 @@
+// Source-built Settings only. Resources remain byte-identical to805.
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/gsprofilesrv/gssettingsuis/Gs/GSApplication/GSApplication_htcleo.mmp

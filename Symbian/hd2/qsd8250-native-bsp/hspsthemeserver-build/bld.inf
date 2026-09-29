@@ -1,0 +1,7 @@
+// Isolated HTCLEO HSPS Theme Server build.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/homescreenpluginsrv/hspsmanager/group/hspsthemeserver.mmp

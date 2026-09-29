@@ -1,0 +1,29 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -1952,6 +1952,12 @@ TInt TFSStartup::LocalDriveInit()
+ #ifdef LOAD_PATCH_LDD
+ 	LoadPatchLDDs();
+ #endif	
++
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++    // HTCLEO_PRE_STARTUP_INIT_COMPLETE_PROBE: split mapping from F32 handshake.
++    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++        : : : "r0", "memory");
++#endif
+ 	
+ 	// Notify file server that local fs initialisation complete
+ 	TRequestStatus status;
+@@ -2273,12 +2279,6 @@ TInt TFSStartup::Run()
+ 	__ASSERT_ALWAYS(r==KErrNone,Panic(ELitLocaleInitialisationFail,r));
+ 
+ 	LocalDriveInit();				
+-
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-    // HTCLEO_POST_LOCAL_DRIVE_INIT_PROBE: split LocalDriveInit from InitialiseHAL.
+-    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-        : : : "r0", "memory");
+-#endif
+ 
+ #ifdef AUTO_PROFILE
+ 	StartProfiler();

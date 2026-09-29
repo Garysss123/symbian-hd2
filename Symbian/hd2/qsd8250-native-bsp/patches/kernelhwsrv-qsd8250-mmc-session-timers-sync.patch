@@ -1,0 +1,65 @@
+diff --git a/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp b/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
+--- a/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
++++ b/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
+@@ -20,5 +20,6 @@ target				epbussd.dll
+ targettype			kext
+ MACRO				__HTCLEO_MMC_SYNC_RETRY_GAP__
++MACRO				__HTCLEO_MMC_SYNC_SESSION_TIMERS__
+ 
+ sourcepath			.
+ source				sdcard.cpp
+diff --git a/kernel/eka/drivers/pbus/mmc/stack.cpp b/kernel/eka/drivers/pbus/mmc/stack.cpp
+--- a/kernel/eka/drivers/pbus/mmc/stack.cpp
++++ b/kernel/eka/drivers/pbus/mmc/stack.cpp
+@@ -4937,7 +4937,7 @@ inline TMMCErr DMMCStack::PollGapTimerSM()
+ 			EStBegin=0,
+ 			EStEnd
+ 			};
+-#ifdef __EPOC32__
++#if defined(__EPOC32__) && !defined(__HTCLEO_MMC_SYNC_SESSION_TIMERS__)
+ 		DMMCSession& s=Session();
+ 		OstTrace1( TRACE_INTERNALS, DMMCSTACK_POLLGAPTIMERSM1, "Current session=0x%x", &s );
+ #endif
+@@ -4945,11 +4945,15 @@ inline TMMCErr DMMCStack::PollGapTimerSM()
+ 	SMF_BEGIN
+ 		OstTrace0( TRACE_INTERNALS, DMMCSTACK_POLLGAPTIMERSM2, "EStBegin" );
+-#ifdef __EPOC32__
++#if defined(__HTCLEO_MMC_SYNC_SESSION_TIMERS__)
++		// The HTCLEO NTimer/DFC resume path is not operational during SD
++		// bring-up. Preserve the generic 40 ms busy-poll gap synchronously.
++		Kern::NanoWait(KMMCPollGapInMilliseconds * 1000000u);
++#elif defined(__EPOC32__)
+ 		s.SynchBlock( KMMCBlockOnPollTimer );
+ 		s.iPollTimer.OneShot(KMMCPollGapInMilliseconds,EFalse);
+ 
+ 		SMF_EXITWAIT
+ #endif
+ 
+ 	SMF_END
+ 	}
+@@ -5008,7 +5012,7 @@ inline TMMCErr DMMCStack::ProgramTimerSM()
+ 		EStEnd
+ 		};
+ 
+-#ifdef __EPOC32__
++#if defined(__EPOC32__) && !defined(__HTCLEO_MMC_SYNC_SESSION_TIMERS__)
+ 	DMMCSession &s = Session();
+ 	OstTrace1( TRACE_INTERNALS, DMMCSTACK_PROGRAMTIMERSM1, "Current session=0x%x", &s );
+ #endif
+@@ -5016,11 +5020,15 @@ inline TMMCErr DMMCStack::ProgramTimerSM()
+ 	SMF_BEGIN
+ 		OstTrace0( TRACE_INTERNALS, DMMCSTACK_PROGRAMTIMERSM2, "EStBegin" );
+-#ifdef __EPOC32__
++#if defined(__HTCLEO_MMC_SYNC_SESSION_TIMERS__)
++		// HTCLEO reports a 1 ms program period. Preserve that bounded delay
++		// without depending on the same non-resuming NTimer/DFC path.
++		Kern::NanoWait(ProgramPeriodInMilliSeconds() * 1000000u);
++#elif defined(__EPOC32__)
+ 		s.SynchBlock(KMMCBlockOnPgmTimer);
+ 		s.iProgramTimer.Cancel();
+ 		s.iProgramTimer.OneShot(ProgramPeriodInMilliSeconds(),EFalse);
+ 
+ 		SMF_EXITWAIT
+ #endif
+ 	SMF_END
+ 	}

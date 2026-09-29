@@ -1,0 +1,123 @@
+diff --git a/kernel/eka/euser/epoc/arm/uc_exe.cpp b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+--- a/kernel/eka/euser/epoc/arm/uc_exe.cpp
++++ b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+@@ -92,6 +92,19 @@ void RunThread(TBool aNotFirst, SThreadCreateInfo& aInfo)
+ #endif
+ 	TInt r = UserHeap::SetupThreadHeap(aNotFirst, cinfo);
+ 
++#ifdef __HTCLEO_EFILE_POST_HEAP_UDF_PROBE__
++	if (r==KErrNone && !aNotFirst)
++		{
++		/* Iteration 140: initial EFILE thread after heap setup. */
++		asm volatile(
++			".word 0xe7f000f0\n"
++			".word 0xe3540006\n"
++			".word 0xea000000\n"
++			".word 0x48313430\n"
++			: : : "cc");
++		}
++#endif
++
+ 	if (r==KErrNone)
+ 		r = UserSvr::DllSetTls(KGlobalDestructorTlsKey, KDllUid_Special, (TAny*)globalDestructorFunc);
+ 
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,67 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_POST_HEAP_UDF_PROBE__)
++/* Iteration 140's sole non-halting renderer, after EFILE heap setup. */
++static void HtcleoGate3PostHeapScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkRed = 0x4000;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KCyan = 0x07ff;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KDarkRed;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block H for the post-heap checkpoint. */
++			const TBool left = x >= 144 && x < 176 && y >= 240 && y < 560;
++			const TBool middle = y >= 384 && y < 416 && x >= 144 && x < 336;
++			const TBool right = x >= 304 && x < 336 && y >= 240 && y < 560;
++			if (left || middle || right)
++				colour = KCyan;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate3PostHeapUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xe7f000f0u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe3540006u) /* cmp r4,#6 */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xea000000u) /* b over unique-ID word */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x48313430u) /* ASCII H140 */
++		return EFalse;
++
++	HtcleoGate3PostHeapScreenProbe();
++	aContext->iR15 += 4; /* Resume at the untouched CMP after the ARM UDF. */
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +238,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_POST_HEAP_UDF_PROBE__)
++	if (HtcleoHandleGate3PostHeapUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,11 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++FIRSTLIB		htcleo_efile_post_heap.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE

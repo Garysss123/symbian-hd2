@@ -1,0 +1,11 @@
+// Isolated HTCLEO HomeScreen core build: supervisor, process bootstrap,
+// framework, idle integration and their resources only.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/idlefw/group/aiidleint.mmp
+/root/symbian3-full/sf/mw/homescreensrv/idlefw/group/aifw.mmp
+/root/symbian3-full/sf/mw/homescreensrv/idlefw/group/homescreen.mmp
+/root/symbian3-full/sf/mw/homescreensrv/idlefw/hslaunch/group/hslaunch.mmp

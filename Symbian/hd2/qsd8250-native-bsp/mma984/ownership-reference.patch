@@ -1,0 +1,21 @@
+--- stock/volumekeys/src/cmmaglobalvolume.cpp
++++ fixed/volumekeys/src/cmmaglobalvolume.cpp
+@@
+-    CMMAGlobalVolume* self = new(ELeave) CMMAGlobalVolume(aForeground);
++    // Caller retains ownership until construction succeeds.
++    CMMAGlobalVolume* self = new(ELeave) CMMAGlobalVolume(NULL);
+--- stock/volumekeys/inc/cmmaglobalvolume.h
++++ fixed/volumekeys/inc/cmmaglobalvolume.h
+@@
+ public: // Constructor and destructors
++    // Called exactly once by CreateForegroundL after NewL succeeds.
++    // No allocation, callbacks or leaves during transfer.
++    void TakeForegroundOwnership(CMMAForeground* aForeground)
++        { iForeground = aForeground; }
+--- stock/volumekeys/src/Foreground.cpp
++++ fixed/volumekeys/src/Foreground.cpp
+@@
+     CMMAGlobalVolume* globalVolume = CMMAGlobalVolume::NewL(foreground);
++    globalVolume->TakeForegroundOwnership(foreground);
+     // Global volume takes the ownership of the foreground listener
+     CleanupStack::Pop(foreground);

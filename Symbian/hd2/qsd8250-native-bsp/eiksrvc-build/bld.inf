@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the Eikon client-session connection trace.
+// Only eiksrvc.dll is rebuilt; the server executable and server-side DLLs
+// remain byte-identical to the immutable parent package.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/commonuisupport/uikon/group/EIKSRVC.MMP

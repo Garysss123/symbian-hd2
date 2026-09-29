@@ -1,0 +1,27 @@
+diff --git a/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp b/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
+--- a/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
++++ b/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
+@@ -1662,5 +1662,23 @@ void ArmMmu::InitPageDirectory(TInt aOsAsid, TBool aSeparateGlobal)
+ 	memclr(newpd, iLocalPdSize);		// clear local page directory
+ 	CacheMaintenance::MultiplePtesUpdated((TLinAddr)newpd, iLocalPdSize);
++#if defined(__CPU_QSD8250__)
++	// The stock multiple memory model links ROM at 0x80000000, where TTBR1's
++	// shared global page directory covers it.  HTC Leo loads the complete ROM
++	// at RomHeaderAddress (0x12200000), inside each process-private TTBR0 range.
++	// A normal process owns only the local quarter-page-directory, so without
++	// copying these PDEs it can execute only stale TLB entries left by the
++	// bootstrap address space; the first untouched ROM page raises IFSR 0x5.
++	if (!aSeparateGlobal)
++		{
++		const TPde* kpd=(const TPde*)KPageDirectoryBase;
++		const TLinAddr romBase=::RomHeaderAddress & ~KChunkMask;
++		const TLinAddr romEnd=(::RomHeaderAddress+
++			TheRomHeader().iUncompressedSize+KChunkMask) & ~KChunkMask;
++		__NK_ASSERT_ALWAYS(romEnd>romBase);
++		__NK_ASSERT_ALWAYS((romEnd>>KChunkShift)*sizeof(TPde)<=iLocalPdSize);
++		CopyPdes(newpd, kpd, romBase, romEnd);
++		}
++#endif
+ 	if (aSeparateGlobal)
+ 		{
+ 		const TPde* kpd=(const TPde*)KPageDirectoryBase;	// kernel page directory

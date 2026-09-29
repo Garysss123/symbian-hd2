@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "profile": "htcleo-qsd8250-noncellular",
+  "product_goal": [
+    "symbian-ui",
+    "touch-input",
+    "offline-jar-import-and-play",
+    "java-me"
+  ],
+  "acceptance_revision": "2026-09-07-java-first",
+  "required_final_gates": [15, 16, 17, 19],
+  "optional_formal_gates": [20],
+  "retired_formal_gates": [18],
+  "optional_sis_policy": "general-sis-lifecycle-may-be-deferred-or-abandoned-preserve-actual-java-dependencies",
+  "nonblocking_optional_features": [
+    "general-sis-install-and-native-apps",
+    "wifi",
+    "bluetooth",
+    "audio"
+  ],
+  "disabled_runtime_destinations": [
+    "private\\101f7988\\esock_bt.cmi",
+    "private\\101f7989\\esock\\bt.bt_v2.esk",
+    "private\\101f7988\\esock_dip.cmi",
+    "private\\101f7988\\esock_mip.cmi",
+    "private\\101f7988\\esock_sip.cmi",
+    "private\\101f7989\\esock\\ip.addressinfo_tcpip.esk",
+    "private\\101f7989\\esock\\ip.rtp.esk",
+    "private\\101f7989\\esock\\ip.tcpip.esk",
+    "private\\101f7989\\esock\\ip.napt.esk",
+    "private\\101f7989\\esock\\ip.probe.esk",
+    "private\\101f7989\\esock\\sip.providers.esk"
+  ],
+  "permanent_pre_estart_non_autostart": [
+    "sys\\bin\\exmoncommon.dll",
+    "sys\\bin\\exmondebug.dll",
+    "sys\\bin\\kdebug.dll"
+  ],
+  "temporary_pre_estart_deferred": [
+    "sys\\bin\\medint.pdd"
+  ],
+  "restored_pre_estart_extensions": [
+    "sys\\bin\\epointer.dll",
+    "sys\\bin\\ekeyb.dll"
+  ],
+  "noncellular_provider_destinations": [
+    "private\\101f7988\\etel.cmi",
+    "private\\101f7988\\esock_smswap.cmi",
+    "private\\101f7989\\operatorvariants.ini",
+    "sys\\bin\\commontsy.dll",
+    "sys\\bin\\phonetsy.tsy",
+    "sys\\bin\\ctsysystemstateplugin.dll",
+    "sys\\bin\\umtsif.dll",
+    "sys\\bin\\licenseetsy.dll",
+    "sys\\bin\\simatktsy.dll",
+    "sys\\bin\\phoneserver.exe",
+    "sys\\bin\\satsystemstate.dll",
+    "sys\\bin\\sateventmonitors.dll",
+    "sys\\bin\\satengine.dll",
+    "sys\\bin\\satserver.exe",
+    "sys\\bin\\satclient.dll",
+    "sys\\bin\\setupeventlistcmd.dll",
+    "sys\\bin\\satshellcntrl.dll",
+    "sys\\bin\\mcssathandler.dll"
+  ],
+  "on_demand_cmi_destinations": [
+    "private\\101f7988\\etel.cmi",
+    "private\\101f7988\\esock_smswap.cmi"
+  ],
+  "required_runtime_destinations": [
+    "sys\\bin\\apparc.dll",
+    "sys\\bin\\avkon.dll",
+    "sys\\bin\\matrixmenu.exe",
+    "sys\\bin\\c32.dll",
+    "sys\\bin\\c32exe.exe",
+    "sys\\bin\\c32root.dll",
+    "sys\\bin\\c32start.exe",
+    "sys\\bin\\esock.dll",
+    "sys\\bin\\esocksvr.dll",
+    "sys\\bin\\commsdat.dll",
+    "sys\\bin\\commdb.dll",
+    "sys\\bin\\ecom.dll",
+    "sys\\bin\\ecomserver.exe",
+    "sys\\bin\\ecompatchdata.dll",
+    "sys\\bin\\ssmutilsrv.exe",
+    "sys\\bin\\ssmadaptationcli.dll",
+    "sys\\bin\\ssmsuscli.dll",
+    "sys\\bin\\stateadaptation.dll",
+    "sys\\bin\\miscadaptation.dll",
+    "sys\\bin\\starterclient.dll",
+    "sys\\bin\\startupadaptationadapter.dll",
+    "sys\\bin\\ssmsystemcmds.dll",
+    "sys\\bin\\ssmpowersup.dll",
+    "sys\\bin\\ssmuiproviderdll.dll",
+    "sys\\bin\\customcmds.dll",
+    "sys\\bin\\soundsc.pdd",
+    "sys\\bin\\esoundsc.ldd",
+    "sys\\bin\\javautils.dll",
+    "sys\\bin\\javacomms.dll"
+  ],
+  "retained_client_compatibility_destinations": [
+    "sys\\bin\\etel.dll",
+    "sys\\bin\\etelmm.dll",
+    "sys\\bin\\etel3rdparty.dll",
+    "sys\\bin\\etelpckt.dll",
+    "sys\\bin\\etelsat.dll",
+    "sys\\bin\\gsmu.dll",
+    "sys\\bin\\smsu.dll",
+    "sys\\bin\\smcm.dll",
+    "sys\\bin\\smsprot.prt",
+    "sys\\bin\\wapprot.prt"
+  ],
+  "startup_command_list_destinations": [
+    "private\\2000d75b\\startup\\0\\preuiservicescmdlist.rsc",
+    "private\\2000d75b\\startup\\0\\uiservicescmdlist.rsc",
+    "private\\2000d75b\\startup\\0\\criticalappscmdlist.rsc",
+    "private\\2000d75b\\startup\\0\\noncriticalcmdlist.rsc",
+    "private\\2000d75b\\startup\\0\\wserv.rsc"
+  ],
+  "forbidden_startup_tokens": [
+    "phoneserver.exe",
+    "satserver.exe",
+    "phonetsy.tsy",
+    "simatktsy.dll",
+    "licenseetsy.dll",
+    "commontsy.dll",
+    "ctsysystemstateplugin.dll",
+    "umtsif.dll"
+  ]
+}

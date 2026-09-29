@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<build xmlns="http://symbian.com/xml/build">
+  <!-- Scoped only to the own941 kernel observer,not the JVM or user probe.
+       This vintage compiler recipe ignores OPTION GCCE for this LDD target. -->
+  <var name="java_fault_nortti">
+    <set name="CPP_LANG_OPTION" value="-x c++ -Wno-ctor-dtor-privacy -fno-rtti"/>
+  </var>
+</build>

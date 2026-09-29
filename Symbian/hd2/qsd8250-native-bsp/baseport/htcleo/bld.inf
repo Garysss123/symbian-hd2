@@ -1,0 +1,89 @@
+/*
+ * Native EKA2 baseport for the HTC HD2 (HTC Leo / Qualcomm QSD8250).
+ *
+ * Derived from the EPL-1.0 Syborg baseport build shape. This file builds
+ * source-matched kernel, variant and bootstrap artifacts only; the full
+ * S60/Avkon ROM is assembled separately and is never reduced to a Mini ROM.
+ */
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_EXPORTS
+specific/variantmediadef.h /epoc32/include/htcleo/variantmediadef.h
+
+PRJ_EXTENSIONS
+start       extension       base/genexec
+#ifdef SYMBIAN_OLD_EXPORT_LOCATION
+option      INC_PATH        $(EPOCROOT)epoc32/include
+#else
+option      INC_PATH        $(EPOCROOT)epoc32/include/platform
+#endif
+option      EXTRA_SRC_PATH  $(EXTENSION_ROOT)/../../../../os/kernelhwsrv/kernel/eka/kernel
+end
+
+PRJ_MMPFILES
+../../../../os/kernelhwsrv/kernel/eka/compsupp/gcce/ksrt_gcce
+../../../../os/kernelhwsrv/kernel/eka/euser/epoc/edllstub
+../../../../os/kernelhwsrv/kernel/eka/euser/edll
+../../../../os/kernelhwsrv/kernel/eka/euser/eexe
+../../../../os/kernelhwsrv/kernel/eka/kernel/eext
+../../../../os/kernelhwsrv/kernel/eka/kernel/edev
+../../../../os/kernelhwsrv/kernel/eka/kernel/evar
+../../../../os/kernelhwsrv/kernel/eka/kernel/ekern
+../../../../os/kernelhwsrv/kernel/eka/kernel/exstart
+../../../../os/kernelhwsrv/kernel/eka/kernel/kc_exe
+../../../../os/kernelhwsrv/kernel/eka/kernel/exmoncommon
+monitor/htcleo_exmondebug
+../../../../os/kernelhwsrv/kernel/eka/kernel/kdebug
+../../../../os/kernelhwsrv/kernel/eka/drivers/trace/btracex
+../../../../os/kernelhwsrv/kernel/eka/drivers/display/edisplay
+../../../../os/kernelhwsrv/kernel/eka/drivers/ecomm/ecomm
+../../../../os/kernelhwsrv/kernel/eka/drivers/medint/medint
+../../../../os/kernelhwsrv/kernel/eka/drivers/locmedia/elocd
+../../../../os/kernelhwsrv/kernel/eka/drivers/soundsc/soundsc
+../../../../os/kernelhwsrv/kernel/eka/euser/variant_euser
+../../../../os/kernelhwsrv/userlibandfileserver/fileserver/estart/estart
+probes/htcleo_efile_heap_result
+../../../../os/kernelhwsrv/userlibandfileserver/fileserver/sfile/efile
+kahtcleo
+display/htcleo_display
+keymap/keymap
+input/htcleo_keys
+input/htcleo_touch
+serial/htcleo_euart
+sound/htcleo_soundsc
+mmc/htcleo_sdcc_contract
+mmc/htcleo_sdcc
+
+PRJ_EXTENSIONS
+start       extension       base/config
+option      PREFIX          _htcleo_
+option      HALPATH         $(EXTENSION_ROOT)/../../../../os/kernelhwsrv/halservices
+option      SOURCE          $(EXTENSION_ROOT)/hal
+end
+
+PRJ_MMPFILES
+hal/hal
+
+PRJ_EXTENSIONS
+start       extension       base/bootstrap
+#ifdef SYMBIAN_OLD_EXPORT_LOCATION
+option      INC_PATH        $(EPOCROOT)epoc32/include
+#else
+option      INC_PATH        $(EPOCROOT)epoc32/include/platform
+#endif
+#ifdef GCCE
+option      GCCE            GCCE
+#endif
+#ifdef ARMCC
+option      ARMCC           ARMCC
+#endif
+option      NAME            _htcleo_bootloader_bootrom
+option      MEMMODEL        multiple
+option      SOURCES         htcleo.s
+option      INCLUDES        config.inc htcleo.inc
+option      E32PATH         $(EXTENSION_ROOT)/../../../../os/kernelhwsrv/kernel
+option      EXTRA_INC_PATH  $(EXTENSION_ROOT)/bootstrap
+option      EXTRA_SRC_PATH  $(EXTENSION_ROOT)/bootstrap
+end

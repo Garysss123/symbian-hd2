@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the source-matched eikcore.dll pre-factory
+// trace. The frozen EIKCORE export table remains authoritative.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/commonuisupport/uikon/group/EIKCORE.MMP

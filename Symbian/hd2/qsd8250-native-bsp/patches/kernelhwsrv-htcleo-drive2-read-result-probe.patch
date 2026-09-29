@@ -1,0 +1,30 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -94,11 +94,6 @@ GLDEF_C TInt E32Main()
+ 	fsStart.Init();
+ 	
+ 	fsStart.Run();
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-	// HTCLEO_POST_RUN_BOUNDARY_PROBE: split Run/removable mount from StartSystem.
+-	asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-		: : : "r0", "memory");
+-#endif
+ 
+ 	fsStart.StartSystem();
+ 			
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2198,6 +2198,11 @@ TInt TFSStartup::MountRemovableDrives()
+         TBuf8<512> htcleoSector0;
+         htcleoSector0.SetLength(512);
+         TInt htcleoReadResult=htcleoDrive2.Read(0,512,htcleoSector0);
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++        // HTCLEO_DRIVE2_READ_RESULT_PROBE: raw sector-zero read completion.
++        asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
++            : : "r"(htcleoReadResult) : "r0", "memory");
++#endif
+         if (htcleoReadResult!=KErrNone)
+             {
+             TInt htcleoSdccDiagnostic=UserSvr::HalFunction(

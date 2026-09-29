@@ -1,0 +1,7 @@
+// Isolated HTCLEO HSPS SAPI provider build.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/homescreensrv_plat/sapi_homescreenplugin/group/hspsprovider.mmp

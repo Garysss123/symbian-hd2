@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the source-built ECom server executable.
+// Test targets remain excluded; only the ROM server is rebuilt.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/ossrv/lowlevellibsandfws/pluginfw/Framework/MMPFiles/EComServer.mmp

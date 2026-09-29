@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  The released LIW headers contain redundant in-class qualification accepted
+  by the original compiler. Relax only the isolated hspluginsettings.dll
+  rebuild; no runtime source, ABI or linker policy is changed.
+-->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="hspluginsettings_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+  </var>
+</build>

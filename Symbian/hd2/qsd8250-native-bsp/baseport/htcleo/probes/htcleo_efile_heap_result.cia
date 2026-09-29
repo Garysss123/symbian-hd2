@@ -1,0 +1,4 @@
+/* Iteration 216 supplies stock E32 entry; LoaderThread owns the sole probe. */
+#include <u32std.h>
+
+#include "uc_exe.cia"

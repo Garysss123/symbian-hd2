@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Modifications Copyright (c) 2026 HTC Leo Symbian port contributors.
+ * Licensed under the Eclipse Public License v1.0.
+ *
+ * Hardware-independent UK key translation table.  HTCLEO has no keyboard
+ * PDD yet, but EStart and the UI expect ekdata.dll to exist in the ROM.
+ */
+
+#include <variant.mmh>
+
+TARGET          VariantTarget(ekdata,dll)
+TARGETTYPE      dll
+LINKAS          ekdata.dll
+
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+SOURCE          keymap.cpp
+
+LIBRARY         euser.lib
+
+DEFFILE         ../../../../../os/kernelhwsrv/kernel/eka/~/ekdata.def
+NOSTRICTDEF
+
+UID             0x1000008d 0x100039e0
+VENDORID        0x70000001
+CAPABILITY      all
+MACRO           __SECURE_API__
+UNPAGEDCODE

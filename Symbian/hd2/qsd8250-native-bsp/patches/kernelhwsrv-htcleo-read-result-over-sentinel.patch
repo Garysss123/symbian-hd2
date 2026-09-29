@@ -1,0 +1,18 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2204,11 +2204,13 @@ TInt TFSStartup::MountRemovableDrives()
+             {
+             TInt htcleoSdccDiagnostic=UserSvr::HalFunction(
+                 EHalGroupPlatformSpecific1,0,0,0);
+-            if (((TUint32)htcleoSdccDiagnostic&0xf0000000u)==0xd0000000u)
++            // DFE00000 is the untouched startup sentinel, not a command result.
++            if (((TUint32)htcleoSdccDiagnostic&0xf0000000u)==0xd0000000u &&
++                (TUint32)htcleoSdccDiagnostic!=0xdfe00000u)
+                 htcleoDrive2CapsResult=htcleoSdccDiagnostic;
+             else
+                 {
+                 // CB00xxxx identifies Read; low 16 bits are abs(error).
+                 htcleoDrive2CapsResult=(TInt)(0xcb000000u | ((TUint32)(-htcleoReadResult)&0xffffu));
+                 }
+             }

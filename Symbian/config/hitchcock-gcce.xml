@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  The released Hitchcock headers contain three redundant in-class
+  qualifications accepted by the original compiler.  Keep those shared SDK
+  headers byte-for-byte intact and relax only this isolated GCCE source build.
+-->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="hitchcock_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+    <!-- The frozen Hitchcock DEF exports implementations whose legacy source
+         redeclarations do not repeat IMPORT_C/EXPORT_C.  SBSv2 otherwise
+         compiles them with hidden visibility and elf2e32 cannot bind the
+         frozen ordinals even though the code is present in the ELF. -->
+    <set name="CC" value="/path/to/hd2-legacy-lab/Symbian/scripts/htcleo-gcce-hitchcock-cc-wrapper.sh"/>
+    <!-- edll.lib's public _E32Dll entry and stock body live in different
+         archive members.  Redirect only the public entry's undefined body
+         call to our ABI-identical wrapper; no duplicate symbol or link-order
+         assumption is permitted. -->
+    <set name="EXTRA_LD_OPTION" value="-Wl,--wrap=_E32Dll_Body"/>
+  </var>
+</build>

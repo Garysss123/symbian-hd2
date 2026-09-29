@@ -1,0 +1,7 @@
+// Isolated HTCLEO HomeScreen settings diagnostic build.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/homescreenpluginsrv/homescreen_settings_api/group/hspluginsettings.mmp

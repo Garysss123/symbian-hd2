@@ -1,0 +1,37 @@
+// Original application recipe, code-only. Existing C: resources stay immutable.
+#include <platform_paths.hrh>
+#include "/root/symbian3-full/sf/app/files/filemanager/group/FileManagerUID.h"
+TARGET filemanager.exe
+TARGETTYPE exe
+EPOCSTACKSIZE 0x5000
+EPOCHEAPSIZE 0x20000 0x800000
+UID KEPOCAppUID2 KFileManagerUID3
+VENDORID VID_DEFAULT
+CAPABILITY CAP_APPLICATION DiskAdmin AllFiles PowerMgmt
+MACRO _F32_STRICT_64_BIT_MIGRATION
+SOURCEPATH /sf/app/files/filemanager/App/src
+SOURCE CFileManagerApplication.cpp CFileManagerDocument.cpp CFileManagerAppUi.cpp
+SOURCE CFileManagerFileSelectionFilter.cpp CFileManagerStringCache.cpp
+SOURCE CFileManagerViewBase.cpp CFileManagerContainerBase.cpp
+SOURCE CFileManagerFileListContainer.cpp CFileManagerFoldersView.cpp
+SOURCE Cfilemanagersearchresultsview.cpp CFileManagerMainView.cpp
+SOURCE CFileManagerMemoryStoreView.cpp
+#ifdef RD_FILE_MANAGER_BACKUP
+SOURCE CFileManagerBackupView.cpp CFileManagerRestoreView.cpp
+SOURCE CFileManagerSettingListContainer.cpp CFileManagerTaskScheduler.cpp
+SOURCE CFileManagerSchBackupHandler.cpp
+#endif
+USERINCLUDE /sf/app/files/filemanager/group /sf/app/files/filemanager/App/inc
+APP_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE /sf/app/files/filemanager/View/inc /sf/app/files/filemanager/Engine/inc
+SYSTEMINCLUDE /sf/app/files/files_plat/memory_scan_popup_ui_api/inc
+LIBRARY euser.lib cone.lib apparc.lib eikcore.lib eikctl.lib eikcoctl.lib avkon.lib
+LIBRARY commonengine.lib filemanagerview.lib filemanagerengine.lib commondialogs.lib
+// Existing lower-case sendui.dso has legacy BMARM names. Isolated EABI alias
+// retains the native sendui DLL link-as name/ordinals without replacing it.
+LIBRARY bafl.lib filemanager_sendui_eabi.lib memstatepopup.lib hlplch.lib efsrv.lib aknskins.lib gdi.lib
+LIBRARY drmhelper.lib charconv.lib ecom.lib centralrepository.lib
+#ifdef RD_FILE_MANAGER_BACKUP
+LIBRARY ws32.lib schsvr.lib apgrfx.lib eikdlg.lib
+#endif
+LIBRARY caf.lib commonui.lib servicehandler.lib platformenv.lib ssmcmn.lib

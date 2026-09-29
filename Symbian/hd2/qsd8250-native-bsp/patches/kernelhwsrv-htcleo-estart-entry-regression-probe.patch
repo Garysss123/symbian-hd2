@@ -1,0 +1,30 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -90,6 +90,12 @@ static TInt HtcleoWriteFatBootRecord()
+ 
+ GLDEF_C TInt E32Main()
+ 	{
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++	// HTCLEO_ESTART_ENTRY_REGRESSION_PROBE: first ESTART E32Main action.
++	asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++		: : : "r0", "memory");
++#endif
++
+ 	
+ 	TFSStartup fsStart;
+ 	fsStart.Init();
+@@ -96,12 +102,7 @@ GLDEF_C TInt E32Main()
+ 	
+ 	fsStart.Run();
+ 
+-	TInt htcleoGate8Result=fsStart.StartSystem();
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-	// HTCLEO_GATE8_ENTRY_REGRESSION_PROBE: recheck the iteration-302 boundary.
+-	asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
+-		: : "r"(htcleoGate8Result) : "r0", "memory");
+-#endif
++	fsStart.StartSystem();
+ 			
+ 	(void)HtcleoWriteFatBootRecord();
+ 

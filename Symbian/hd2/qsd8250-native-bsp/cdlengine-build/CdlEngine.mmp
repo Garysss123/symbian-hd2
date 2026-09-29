@@ -1,0 +1,20 @@
+// Same ten original sources and frozen ARM exports; pin stock binary identity.
+#include <platform_paths.hrh>
+TARGET CdlEngine.dll
+TARGETTYPE DLL
+UID 0x1000008D 0x101f8243
+CAPABILITY CAP_GENERAL_DLL
+VENDORID 0x101fb657
+DEFFILE /path/to/hd2-legacy-lab/Symbian/hd2/qsd8250-native-bsp/cdlengine-build/cdlengine.def
+SOURCEPATH /sf/mw/uiresources/layouts/cdl/CdlEngine/src
+USERINCLUDE /sf/mw/uiresources/layouts/cdl/CdlEngine/inc
+USERINCLUDE /sf/mw/uiresources/layouts/cdl/CdlServer/inc
+SYSTEMINCLUDE /sf/mw/uiresources/layouts/cdl/CdlEngine/inc
+SYSTEMINCLUDE /sf/mw/uiresources/layouts/cdl/CdlServer/inc
+MW_LAYER_SYSTEMINCLUDE
+SYSTEMINCLUDE /sf/mw/uiresources/inc
+SYSTEMINCLUDE /sf/mw/uiresources/layouts/inc
+SOURCE CdlEngine.cpp CCdlEngine.cpp CdlLibrary.cpp CdlCustomisation.cpp
+SOURCE CdlExplorer.cpp CdlUserPackageExplorer.cpp CdlClient.cpp CdlRefs.cpp
+SOURCE CdlContainers.cpp CdlChangeObserver.cpp
+LIBRARY euser.lib efsrv.lib bafl.lib ecom.lib

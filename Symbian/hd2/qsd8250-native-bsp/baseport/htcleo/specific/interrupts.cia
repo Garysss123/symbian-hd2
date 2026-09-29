@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+ * Modifications Copyright (c) 2026 HTC Leo Symbian port contributors.
+ * Licensed under the Eclipse Public License v1.0.
+ */
+
+#include <e32cia.h>
+#include <htcleo_priv.h>
+#include <cpudefs.h>
+
+#if defined(__GCC32__)
+#define CSM_ZN7NTimerQ4TickEv " Tick__7NTimerQ"
+#elif defined(__ARMCC__)
+#define CSM_ZN7NTimerQ4TickEv " __cpp(NTimerQ::Tick)"
+#else
+#define CSM_ZN7NTimerQ4TickEv " _ZN7NTimerQ4TickEv"
+#endif
+
+__NAKED__ void HtcleoWFIIdle()
+    {
+    asm("mov r0, #0");
+    asm("mcr p15, 0, r0, c7, c0, 4");
+    asm("bx lr");
+    }
+
+__NAKED__ void HtcleoInterrupt::MsTimerTick(TAny* /* aPtr */)
+    {
+    /* GPT runs with clear-on-match; the dispatcher clears the VIC edge. */
+    asm("b " CSM_ZN7NTimerQ4TickEv);
+    }
+
+/*
+ * EKA2 IRQ ABI: r0-r3/r12 are disposable on entry; preserve r4-r11.  The
+ * QSD8x50 vector-read register returns the linear interrupt number.
+ */
+__NAKED__ void HtcleoInterrupt::IrqDispatch()
+    {
+    asm("push {r4,r5,lr}");
+    asm("ldr r4, __KHwBaseVic");
+    asm("Dispatch:");
+    /* Scorpion VIC requires a read of IRQ_VEC_RD to prime the vector latch,
+     * followed by IRQ_VEC_PEND_RD for the current pending interrupt.  D0
+     * alone retains the previously handled vector. */
+    asm("ldr r5, [r4, #208]");              /* EVicIrqVector */
+    asm("ldr r5, [r4, #212]");              /* EVicIrqVectorPending */
+    asm("cmp r5, #64");
+    asm("bhs NoPending");
+
+    /* ACK an edge before running its handler so the next GPT edge can be
+     * latched while NTimerQ::Tick is executing. */
+    asm("mov r0, #1");
+    asm("and r12, r5, #31");
+    asm("mov r0, r0, lsl r12");
+    asm("mov r12, r4");
+    asm("cmp r5, #32");
+    asm("addhs r12, r12, #4");
+    asm("str r0, [r12, #176]");             /* EVicIntClear0/1 */
+    asm("mov r0, #0");
+    asm("mcr p15, 0, r0, c7, c10, 4");     /* drain write buffer */
+
+    asm("ldr r12, __HtcleoHandlerStart");
+    asm("add r12, r12, r5, lsl #3");
+    /* Match Linux msm_vic_handle_irq(): keep reading D0 then D4 and dispatch
+     * until D4 reports no pending vector.  A new GPT edge can latch while
+     * NTimerQ::Tick runs, so returning after one vector can leave VIC output
+     * continuously asserted without another CPU IRQ transition. */
+    asm("adr lr, Dispatch");
+    asm("ldm r12, {r0,pc}");
+
+    asm("NoPending:");
+    asm("pop {r4,r5,pc}");
+
+    asm("__KHwBaseVic:");
+    asm(".word %a0" : : "i" ((TInt)KHwBaseVic));
+    asm("__HtcleoHandlerStart:");
+    asm(".word %a0" : : "i" (&Handlers[0]));
+    }
+
+__NAKED__ void HtcleoInterrupt::FiqDispatch()
+    {
+    asm("push {r0-r3,lr}");
+    asm("pop {r0-r3,pc}");
+    }

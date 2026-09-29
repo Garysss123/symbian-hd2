@@ -1,0 +1,12 @@
+/*
+ * Neutral product-variant overlay for the open Symbian^3 PDK baseline.
+ *
+ * The original Foundation build generated this header from its product
+ * configuration repository, but that generated file is not included in the
+ * public PDK archives.  An empty guarded overlay selects the defaults already
+ * provided by bldpublic.hrh/bldregional.hrh.
+ */
+#ifndef PRODUCTVARIANT_HRH
+#define PRODUCTVARIANT_HRH
+
+#endif

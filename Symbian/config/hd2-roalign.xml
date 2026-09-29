@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  GCCE 4.4-172 can finish a read-only LOAD segment on a non-word boundary.
+  elf2e32 appends a 32-bit export table there and rejects the resulting image.
+  This Raptor variant supplies the generated linker script that pads .rodata.
+-->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="hd2_roalign">
+    <set name="EXTRA_LD_OPTION"
+         value="-Wl,-T,/root/symbian-phase1/armsymbian-aligned.xs"/>
+  </var>
+</build>

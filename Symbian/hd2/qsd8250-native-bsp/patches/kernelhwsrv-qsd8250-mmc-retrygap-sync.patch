@@ -1,0 +1,44 @@
+diff --git a/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp b/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
+index a3dd6db..404c80e 100644
+--- a/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
++++ b/kernel/eka/drivers/pbus/mmc/sdcard/sdcard3c/epbussd.mmp
+@@ -18,6 +18,7 @@
+ 
+ target				epbussd.dll
+ targettype			kext
++MACRO				__HTCLEO_MMC_SYNC_RETRY_GAP__
+ 
+ sourcepath			.
+ source				sdcard.cpp
+diff --git a/kernel/eka/drivers/pbus/mmc/stack.cpp b/kernel/eka/drivers/pbus/mmc/stack.cpp
+index d2d0a15..84591aa 100644
+--- a/kernel/eka/drivers/pbus/mmc/stack.cpp
++++ b/kernel/eka/drivers/pbus/mmc/stack.cpp
+@@ -4968,7 +4968,7 @@ inline TMMCErr DMMCStack::RetryGapTimerSM()
+ 			EStBegin=0,
+ 			EStEnd
+ 			};
+-#ifdef __EPOC32__
++#if defined(__EPOC32__) && !defined(__HTCLEO_MMC_SYNC_RETRY_GAP__)
+ 		DMMCSession& s=Session();
+ 		OstTrace1( TRACE_INTERNALS, DMMCSTACK_RETRYGAPTIMERSM1, "Current session=0x%x", &s );
+ #endif
+@@ -4976,11 +4976,17 @@ inline TMMCErr DMMCStack::RetryGapTimerSM()
+ 	SMF_BEGIN
+ 		OstTrace0( TRACE_INTERNALS, DMMCSTACK_RETRYGAPTIMERSM2, "EStBegin" );
+-#ifdef __EPOC32__
++#if defined(__HTCLEO_MMC_SYNC_RETRY_GAP__)
++		// HTCLEO bring-up compatibility: the first CMD0 completes, but the
++		// asynchronous retry-timer path does not resume the MMC state machine.
++		// Preserve the protocol's exact 10 ms gap with a bounded synchronous
++		// wait until the QSD8250 NTimer/DFC resume path is repaired and proven.
++		Kern::NanoWait(KMMCRetryGapInMilliseconds * 1000000u);
++#elif defined(__EPOC32__)
+ 		s.SynchBlock( KMMCBlockOnRetryTimer );
+ 		s.iRetryTimer.OneShot(KMMCRetryGapInMilliseconds,EFalse);
+ 
+ 		SMF_EXITWAIT
+ #endif
+ 
+ 	SMF_END
+ 	}

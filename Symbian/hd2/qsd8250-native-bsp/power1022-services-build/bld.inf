@@ -1,0 +1,5 @@
+PRJ_PLATFORMS
+ARMV5
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/contentpublishingsrv/contentpublishingserver/cpsqlitestorage/group/cpstorage.mmp
+/root/symbian3-full/sf/mw/appsupport/tzservices/tzserver/group/TimeZoneServer.mmp

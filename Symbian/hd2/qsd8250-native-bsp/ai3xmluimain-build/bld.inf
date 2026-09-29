@@ -1,0 +1,7 @@
+// Isolated HTCLEO HomeScreen XML controller diagnostic build.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/app/homescreen/idlehomescreen/xmluicontroller/group/aixmluimain.mmp

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Scope legacy redundant-member-qualification compatibility to LCdui948. -->
+<build xmlns="http://symbian.com/xml/build">
+  <var name="lcdui948_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+  </var>
+</build>

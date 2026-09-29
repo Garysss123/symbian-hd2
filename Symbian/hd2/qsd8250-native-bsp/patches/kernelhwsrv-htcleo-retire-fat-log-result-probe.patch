@@ -1,0 +1,17 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -102,12 +102,7 @@ GLDEF_C TInt E32Main()
+ 
+ 	fsStart.StartSystem();
+ 			
+-	const TInt htcleoFatLogResult=HtcleoWriteFatBootRecord();
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-	// One post-write probe remains until the record is verified from the SD.
+-	asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
+-		: : "r"(htcleoFatLogResult) : "r0", "memory");
+-#endif
++	(void)HtcleoWriteFatBootRecord();
+ 
+ 	fsStart.Close();
+ 	return(0);

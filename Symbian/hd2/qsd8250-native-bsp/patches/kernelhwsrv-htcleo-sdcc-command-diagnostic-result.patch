@@ -1,0 +1,18 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2201,5 +2201,14 @@ TInt TFSStartup::MountRemovableDrives()
+         else
+             {
++            // The SDCC PSL exposes its last command as DCCRSSSS through the
++            // reserved platform HAL: CC=command, R=result class, SSSS=STATUS.
++            TInt htcleoSdccDiagnostic=UserSvr::HalFunction(
++                EHalGroupPlatformSpecific1,0,0,0);
++            if (((TUint32)htcleoSdccDiagnostic&0xf0000000u)==0xd0000000u)
++                htcleoDrive2CapsResult=htcleoSdccDiagnostic;
++            else
++                {
+             // CA00xxxx identifies Caps; low 16 bits are abs(error).
+             htcleoDrive2CapsResult=(TInt)(0xca000000u | ((TUint32)(-htcleoCapsResult)&0xffffu));
++                }
+             }

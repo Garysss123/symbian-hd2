@@ -1,0 +1,33 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -96,7 +96,12 @@ GLDEF_C TInt E32Main()
+ 	
+ 	fsStart.Run();
+ 
+-	fsStart.StartSystem();
++	TInt htcleoGate8Result=fsStart.StartSystem();
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++	// HTCLEO_GATE8_ENTRY_REGRESSION_PROBE: recheck the iteration-302 boundary.
++	asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
++		: : "r"(htcleoGate8Result) : "r0", "memory");
++#endif
+ 			
+ 	(void)HtcleoWriteFatBootRecord();
+ 
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2272,12 +2272,6 @@ TInt TFSStartup::Run()
+ 	TInt r = UserSvr::LocalePropertiesSetDefaults();
+ 	__ASSERT_ALWAYS(r==KErrNone,Panic(ELitLocaleInitialisationFail,r));
+ 
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-    // HTCLEO_PRE_LOCAL_DRIVE_INIT_PROBE: split Run/locale from LocalDriveInit.
+-    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-        : : : "r0", "memory");
+-#endif
+-
+ 	LocalDriveInit();				
+ 
+ #ifdef AUTO_PROFILE

@@ -1,0 +1,14 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2017,9 +2017,9 @@ TInt TFSStartup::StartSystem()
+ 	RProcess ws;
+ 	r=ws.Create(KSystemStateManager, KNullDesC);
+-	if (r!=KErrNone)
+ #if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+ 	// HTCLEO_STARTSYSTEM_CREATE_RESULT_PROBE: current post-storage regression split.
+ 	asm volatile("mov r0,%0\n\t.word 0xe7f000f0"
+ 		: : "r"(r) : "r0", "memory");
+ #endif
++	if (r!=KErrNone)
+ 		{

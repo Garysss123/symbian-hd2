@@ -1,0 +1,146 @@
+diff --git a/kernel/eka/common/heap_hybrid.cpp b/kernel/eka/common/heap_hybrid.cpp
+index 3186cab..b287985 100644
+--- a/kernel/eka/common/heap_hybrid.cpp
++++ b/kernel/eka/common/heap_hybrid.cpp
+@@ -3260,7 +3260,20 @@ EXPORT_C TInt UserHeap::CreateThreadHeap(SStdEpocThreadCreateInfo& aInfo, RHeap*&
+ //
+ {
+ 	TInt page_size;
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
++	TInt page_result = UserHal::PageSizeInBytes(page_size);
++	/* Iteration 142: one probe at the first internal heap boundary. */
++	asm volatile(
++		"mov r6, %0\n"
++		"mov r8, %1\n"
++		".short 0xde42\n"
++		".short 0x2c08\n"
++		".short 0xe000\n"
++		".short 0x4832\n"
++		: : "r" (page_result), "r" (page_size) : "r6", "r8", "cc", "memory");
++#else
+ 	GET_PAGE_SIZE(page_size);
++#endif
+ 	TInt minLength = _ALIGN_UP(aInfo.iHeapInitialSize, page_size);
+ 	TInt maxLength = Max(aInfo.iHeapMaxSize, minLength);
+ 	if (UserTestDebugMaskBit(96)) // 96 == KUSERHEAPTRACE in nk_trace.h
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+index 85b6a50..063ceaa 100644
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,89 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
++/* Iteration 142's sole renderer: first CreateThreadHeap HAL boundary. */
++static void HtcleoGate3PageSizeScreenProbe(TInt aResult, TInt aPageSize)
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	const TBool good = aResult == KErrNone && aPageSize == 4096;
++	const TUint16 KBackground = good ? 0x0200 : 0x4000;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++	TUint digit = good ? 4u : (aResult < 0 ? (TUint)(-aResult) : (TUint)aResult);
++	if (!good && aResult == KErrNone)
++		digit = 10; /* HAL returned success but supplied an invalid page size. */
++	TUint segments;
++	switch (digit)
++		{
++		case 0: segments = 0x3f; break;
++		case 1: segments = 0x06; break;
++		case 2: segments = 0x5b; break;
++		case 3: segments = 0x4f; break;
++		case 4: segments = 0x66; break;
++		case 5: segments = 0x6d; break;
++		case 6: segments = 0x7d; break;
++		case 7: segments = 0x07; break;
++		case 8: segments = 0x7f; break;
++		case 9: segments = 0x6f; break;
++		default: segments = 0x79; break; /* E */
++		}
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KBackground;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			const TBool a = (segments & 0x01) && y >= 220 && y < 248 && x >= 160 && x < 320;
++			const TBool b = (segments & 0x02) && x >= 292 && x < 320 && y >= 220 && y < 384;
++			const TBool c = (segments & 0x04) && x >= 292 && x < 320 && y >= 384 && y < 548;
++			const TBool d = (segments & 0x08) && y >= 520 && y < 548 && x >= 160 && x < 320;
++			const TBool e = (segments & 0x10) && x >= 160 && x < 188 && y >= 384 && y < 548;
++			const TBool f = (segments & 0x20) && x >= 160 && x < 188 && y >= 220 && y < 384;
++			const TBool g = (segments & 0x40) && y >= 370 && y < 398 && x >= 160 && x < 320;
++			if (a || b || c || d || e || f || g)
++				colour = KYellow;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate3PageSizeUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		!(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xde42u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x2c08u) /* Thumb cmp r4,#8 */
++		return EFalse;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe000u) /* Thumb b over unique-ID halfword */
++		return EFalse;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x4832u) /* H142 unique ID */
++		return EFalse;
++
++	HtcleoGate3PageSizeScreenProbe((TInt)aContext->iR6, (TInt)aContext->iR8);
++	aContext->iR15 += 2;
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +260,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
++	if (HtcleoHandleGate3PageSizeUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+index b92d38b..71fa1b2 100644
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,8 +23,8 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
+ 

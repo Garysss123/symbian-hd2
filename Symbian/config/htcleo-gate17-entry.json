@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "parent_package": "777-symbian3-full-offline-ip-closure-incremental",
+  "parent_sha256": "ccab7cae3b97675d50372e318a5dc89042733192cc0cae77a0479a3e15474d84",
+  "binary_seeds": [
+    "freetype.dll",
+    "gsapp.exe",
+    "gsgenplugin.dll",
+    "gsdisplayplugin.dll"
+  ],
+  "binary_overrides": {
+    "power_save_display_mode.dll": "power_save_display_mode_stub.dll"
+  },
+  "ecom_resources": [
+    "freetype.rsc",
+    "gsgenplugin.rsc",
+    "gsdisplayplugin.rsc"
+  ],
+  "data_resources": [
+    "resource/apps/gsapp.rsc",
+    "resource/apps/gsapp.r01",
+    "resource/apps/gsapp_aif.mif",
+    "private/10003a3f/apps/gsapp_reg.rsc",
+    "resource/gsparentpluginrsc.r01",
+    "resource/gsframeworkrsc.r01",
+    "resource/gsgenpluginrsc.r01",
+    "resource/gsdisplaypluginrsc.r01"
+  ],
+  "font_aliases": [
+    {
+      "source": "resource/fonts/s60digi_v314.ttf",
+      "alias": "resource/fonts/s60snr_v4196.ttf"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+#include <variant.mmh>
+#define INCLUDE_EKERN_LIB
+#include "../../../../../os/kernelhwsrv/kernel/eka/kernel/kern_int.mmh"
+
+TARGET          VariantTarget(exmondebug,dll)
+TARGETTYPE      kext
+ROMTARGET       exmondebug.dll
+
+SOURCEPATH      ../../../../../os/kernelhwsrv/kernel/eka/kernel
+SOURCE          smondebug.cpp
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/kernel/zlib
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/kernel
+SOURCE          zlib/deflate.cpp
+SOURCE          zlib/crc32.cpp
+SOURCE          zlib/trees.cpp
+SOURCE          zlib/zutil.cpp
+SOURCE          crash_gzip.cpp
+SOURCE          crashdebug_gzip.cpp
+SOURCEPATH      ../../../../../os/kernelhwsrv/kernel/eka/kernel/arm
+SOURCE          cmondebug.cpp
+SOURCEPATH      .
+SOURCE          htcleo_monitor.cpp
+
+SYSTEMINCLUDE   ../specific
+LIBRARY         exmoncommon.lib PlatformLib
+EPOCALLOWDLLDATA
+SMPSAFE

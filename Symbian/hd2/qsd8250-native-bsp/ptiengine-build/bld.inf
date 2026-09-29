@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the PtiEngine English-keymap fallback.
+// Language plug-ins and unrelated input-method targets are not rebuilt.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/inputmethods/textinput/ptienginev2/group/ptienginev2.mmp

@@ -1,0 +1,21 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2210,8 +2210,14 @@ TInt TFSStartup::MountRemovableDrives()
+                 (TUint32)htcleoSdccDiagnostic!=0xdfe00000u)
+                 htcleoDrive2CapsResult=htcleoSdccDiagnostic;
+             else
+                 {
+-                // CB00xxxx identifies Read; low 16 bits are abs(error).
+-                htcleoDrive2CapsResult=(TInt)(0xcb000000u | ((TUint32)(-htcleoReadResult)&0xffffu));
++                // No command ran: report the live socket/card/door/PSU state
++                // through the same read-only HAL before falling back to Read.
++                TInt htcleoSocketDiagnostic=UserSvr::HalFunction(
++                    EHalGroupPlatformSpecific1,1,0,0);
++                if (((TUint32)htcleoSocketDiagnostic&0xff000000u)==0xd8000000u)
++                    htcleoDrive2CapsResult=htcleoSocketDiagnostic;
++                else
++                    htcleoDrive2CapsResult=(TInt)(0xcb000000u | ((TUint32)(-htcleoReadResult)&0xffffu));
+                 }
+             }
+         else

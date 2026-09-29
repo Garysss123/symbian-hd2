@@ -1,0 +1,5 @@
+//901 isolated C: GFLM build; no resources or FileManager siblings.
+PRJ_PLATFORMS
+ARMV5
+PRJ_MMPFILES
+gflm.mmp

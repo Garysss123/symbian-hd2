@@ -1,0 +1,7 @@
+// Isolated HTCLEO build unit for MatrixMenu app-info frontier tracing.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/uifw/EikStd/coctlsrc/EIKCOCTL.MMP

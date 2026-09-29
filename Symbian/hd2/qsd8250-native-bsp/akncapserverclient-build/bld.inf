@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the caller-side AppArc/AknCapServer launch
+// trace.  The target is already present in the full ROM; this only rebuilds
+// its single source file with the durable logger enabled.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/classicui/uifw/AknGlobalUI/AknCapServer/group/AknCapServerClient.mmp

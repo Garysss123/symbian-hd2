@@ -1,0 +1,24 @@
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -27,6 +27,7 @@ TARGET			efile.exe
+ #include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++FIRSTLIB		htcleo_efile_entry.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+@@ -36,12 +37,6 @@ macro SYMBIAN_FTRACE_ENABLE_UDEB
+ #endif
+ 
+ #include "efile.mmh"
+-
+-#ifdef MARM
+-USERINCLUDE		../../../kernel/eka/euser/epoc/arm
+-SOURCEPATH		/sf/adapt/htcleo/baseport/htcleo/probes
+-SOURCE			htcleo_efile_entry.cia
+-#endif
+ 
+ 
+ 

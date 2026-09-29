@@ -1,0 +1,21 @@
+#include <platform_paths.hrh>
+MACRO _F32_STRICT_64_BIT_MIGRATION
+TARGET gflm.dll
+TARGETTYPE DLL
+UID 0x1000008D 0x101f84ea
+VENDORID 0x101fb657
+CAPABILITY CAP_GENERAL_DLL
+DEFFILE /path/to/hd2-legacy-lab/Symbian/hd2/qsd8250-native-bsp/gflm-build/gflm.def
+SOURCEPATH /sf/app/files/filemanager/GFLM/src
+SOURCE CGflmNavigatorModel.cpp CGflmFileListModel.cpp CGflmItemGroupImpl.cpp
+SOURCE CGflmItemLocalizer.cpp CGflmGroupItem.cpp CGflmGlobalActionItem.cpp
+SOURCE CGflmFileSystemItem.cpp CGflmDirectoryListingCache.cpp CGflmFileRecognizer.cpp
+SOURCE CGflmDriveResolver.cpp GflmUtils.cpp CGflmDriveItem.cpp
+SOURCE CGflmFileFinder.cpp CGflmFileFinderItem.cpp
+USERINCLUDE /sf/app/files/filemanager/GFLM/inc
+USERINCLUDE /sf/app/files/filemanager/Engine/inc
+APP_LAYER_SYSTEMINCLUDE
+LIBRARY apgrfx.lib apmime.lib bafl.lib efsrv.lib euser.lib directorylocalizer.lib
+#ifdef RD_MULTIPLE_DRIVE
+LIBRARY platformenv.lib
+#endif

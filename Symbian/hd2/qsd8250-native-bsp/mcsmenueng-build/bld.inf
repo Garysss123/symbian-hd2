@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the core MenuContent XML/tree engine trace.
+// Only mcsmenueng.dll is rebuilt; mcsmenu.dll and the established UI stack
+// remain byte-identical to the verified parent.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/menucontentsrv/group/mcsmenueng.mmp

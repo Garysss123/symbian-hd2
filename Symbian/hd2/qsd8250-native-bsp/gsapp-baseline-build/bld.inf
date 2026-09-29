@@ -1,0 +1,6 @@
+// Host calibration only; this executable is never added to a ROM.
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/gsprofilesrv/gssettingsuis/Gs/GSApplication/GSApplication_baseline.mmp

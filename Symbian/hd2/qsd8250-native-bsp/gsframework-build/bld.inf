@@ -1,0 +1,5 @@
+// Code-only root Settings plugin-loader observation; resources remain frozen.
+PRJ_PLATFORMS
+ARMV5
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/gsprofilesrv/gssettingsuis/Gs/GSFramework/GSFramework_htcleo.mmp

@@ -1,0 +1,124 @@
+diff --git a/kernel/eka/euser/epoc/arm/uc_exe.cpp b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+--- a/kernel/eka/euser/epoc/arm/uc_exe.cpp
++++ b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+@@ -96,7 +96,21 @@ void RunThread(TBool aNotFirst, SThreadCreateInfo& aInfo)
+ 		r = UserSvr::DllSetTls(KGlobalDestructorTlsKey, KDllUid_Special, (TAny*)globalDestructorFunc);
+ 
+ 	if (r==KErrNone)
++		{
++#ifdef __HTCLEO_EFILE_POST_TLS_UDF_PROBE__
++		if (!aNotFirst)
++			{
++			/* Iteration 139: initial EFILE thread after heap/TLS setup. */
++			asm volatile(
++				".word 0xe7f000f0\n"
++				".word 0xe3540005\n"
++				".word 0xea000000\n"
++				".word 0x48313339\n"
++				: : : "cc");
++			}
++#endif
+ 		r = CallThrdProcEntry(cinfo.iFunction, cinfo.iPtr, aNotFirst);
++		}
+ 
+ 	User::Exit(r);
+ 	}
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,66 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_POST_TLS_UDF_PROBE__)
++/* Iteration 139's sole non-halting renderer, after EFILE heap/TLS setup. */
++static void HtcleoGate3PostTlsScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkPurple = 0x4010;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KOrange = 0xfd20;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KDarkPurple;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block T for the post-TLS checkpoint. */
++			const TBool top = y >= 240 && y < 272 && x >= 144 && x < 336;
++			const TBool stem = x >= 224 && x < 256 && y >= 240 && y < 560;
++			if (top || stem)
++				colour = KOrange;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate3PostTlsUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xe7f000f0u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe3540005u) /* cmp r4,#5 */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xea000000u) /* b over unique-ID word */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x48313339u) /* ASCII H139 */
++		return EFalse;
++
++	HtcleoGate3PostTlsScreenProbe();
++	aContext->iR15 += 4; /* Resume at the untouched CMP after the ARM UDF. */
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +237,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_POST_TLS_UDF_PROBE__)
++	if (HtcleoHandleGate3PostTlsUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,11 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++FIRSTLIB		htcleo_efile_post_tls.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE

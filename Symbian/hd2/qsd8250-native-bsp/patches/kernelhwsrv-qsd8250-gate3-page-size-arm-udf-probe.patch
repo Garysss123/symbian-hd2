@@ -1,0 +1,95 @@
+diff --git a/kernel/eka/common/heap_hybrid.cpp b/kernel/eka/common/heap_hybrid.cpp
+--- a/kernel/eka/common/heap_hybrid.cpp
++++ b/kernel/eka/common/heap_hybrid.cpp
+@@ -3260,16 +3260,16 @@ EXPORT_C TInt UserHeap::CreateThreadHeap(SStdEpocThreadCreateInfo& aInfo, RHeap*&
+ //
+ {
+ 	TInt page_size;
+-#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_ARM_UDF_PROBE__)
+ 	TInt page_result = UserHal::PageSizeInBytes(page_size);
+-	/* Iteration 142: one probe at the first internal heap boundary. */
++	/* Iteration 143: proven ARM exception path at the first heap boundary. */
+ 	asm volatile(
+ 		"mov r6, %0\n"
+ 		"mov r8, %1\n"
+-		".short 0xde42\n"
+-		".short 0x2c08\n"
+-		".short 0xe000\n"
+-		".short 0x4832\n"
++		".word 0xe7f000f0\n"
++		".word 0xe3540009\n"
++		".word 0xea000000\n"
++		".word 0x48313433\n"
+ 		: : "r" (page_result), "r" (page_size) : "r6", "r8", "cc", "memory");
+ #else
+ 	GET_PAGE_SIZE(page_size);
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,8 +141,8 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
+-#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
+-/* Iteration 142's sole renderer: first CreateThreadHeap HAL boundary. */
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_ARM_UDF_PROBE__)
++/* Iteration 143's sole renderer: ARM probe at the page-size HAL boundary. */
+ static void HtcleoGate3PageSizeScreenProbe(TInt aResult, TInt aPageSize)
+ 	{
+ 	const TUint KWidth = 480;
+@@ -200,33 +200,33 @@ static void HtcleoGate3PageSizeScreenProbe(TInt aResult, TInt aPageSize)
+ 	__e32_io_completion_barrier();
+ 	}
+ 
+-static TBool HtcleoHandleGate3PageSizeUdf(TArmExcInfo* aContext, TInt aMode)
++static TBool HtcleoHandleGate3PageSizeArmUdf(TArmExcInfo* aContext, TInt aMode)
+ 	{
+ 	if (aMode != EUserMode ||
+ 		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
+-		!(aContext->iCpsr & ECpuThumb))
++		(aContext->iCpsr & ECpuThumb))
+ 		return EFalse;
+ 
+ 	GetUndefinedInstruction(aContext);
+-	if (aContext->iFaultAddress != 0xde42u)
++	if (aContext->iFaultAddress != 0xe7f000f0u)
+ 		return EFalse;
+ 
+ 	TArmExcInfo next = *aContext;
+-	next.iR15 += 2;
++	next.iR15 += 4;
+ 	GetUndefinedInstruction(&next);
+-	if (next.iFaultAddress != 0x2c08u) /* Thumb cmp r4,#8 */
++	if (next.iFaultAddress != 0xe3540009u) /* ARM cmp r4,#9 */
+ 		return EFalse;
+-	next.iR15 += 2;
++	next.iR15 += 4;
+ 	GetUndefinedInstruction(&next);
+-	if (next.iFaultAddress != 0xe000u) /* Thumb b over unique-ID halfword */
++	if (next.iFaultAddress != 0xea000000u) /* ARM b over unique-ID word */
+ 		return EFalse;
+-	next.iR15 += 2;
++	next.iR15 += 4;
+ 	GetUndefinedInstruction(&next);
+-	if (next.iFaultAddress != 0x4832u) /* H142 unique ID */
++	if (next.iFaultAddress != 0x48313433u) /* ASCII H143 */
+ 		return EFalse;
+ 
+ 	HtcleoGate3PageSizeScreenProbe((TInt)aContext->iR6, (TInt)aContext->iR8);
+-	aContext->iR15 += 2;
++	aContext->iR15 += 4;
+ 	return ETrue;
+ 	}
+ #endif
+@@ -260,8 +260,8 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
+-#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_UDF_PROBE__)
+-	if (HtcleoHandleGate3PageSizeUdf(pR, mode))
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_PAGE_SIZE_ARM_UDF_PROBE__)
++	if (HtcleoHandleGate3PageSizeArmUdf(pR, mode))
+ 		return;
+ #endif
+ 

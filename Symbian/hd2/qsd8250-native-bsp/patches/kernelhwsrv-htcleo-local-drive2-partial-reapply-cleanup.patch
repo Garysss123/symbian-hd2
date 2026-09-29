@@ -1,0 +1,24 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2170,9 +2170,6 @@ TInt TFSStartup::MountRemovableDrives()
+     {
+     DEBUGPRINT("TFSStartup::MountRemovableDrives");
+ 
+-#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+-    TInt htcleoMountResult=KErrNotFound;
+-#endif
+ 	for (TInt i=0;i<iMapCount;i++)
+ 		{
+ 		SLocalDriveMappingInfo* infoPtr = &iDriveMappingInfo[i];
+@@ -2180,10 +2177,6 @@ TInt TFSStartup::MountRemovableDrives()
+ 			continue;
+         TInt r = MountFileSystem(iDriveMappingInfo[i]);
+         DEBUGPRINT2("Mount drive (%c) -> %d",'A'+iDriveMappingInfo[i].iDriveNumber,r);
+-#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+-        if (infoPtr->iDriveNumber==EDriveE)
+-            htcleoMountResult=r;
+-#endif
+ 		if (r==KErrDisMounted)
+ 			{
+ 			// We have encountered a corrupt internal drive which should be swapped with another internal drive 

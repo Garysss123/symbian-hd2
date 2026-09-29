@@ -1,0 +1,12 @@
+* text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.inl text eol=lf
+*.s text eol=lf
+*.S text eol=lf
+*.md text eol=lf
+*.patch -text
+*.html text eol=lf

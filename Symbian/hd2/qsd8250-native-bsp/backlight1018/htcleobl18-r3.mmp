@@ -1,0 +1,14 @@
+#include "../variant.mmh"
+#include "kernel/kern_ext.mmh"
+TARGET          htcleobl18.ldd
+TARGETTYPE      ldd
+UID             0x100000af
+VENDORID        0x70000001
+CAPABILITY      all
+SYSTEMINCLUDE   AsspNKernIncludePath
+USERINCLUDE     .
+SOURCEPATH      .
+SOURCE          htcleobl18.cpp
+LIBRARY         PlatformLib
+// EKA2 core772 has no usable cxxabi RTTI vtables. This LDD uses no RTTI.
+OPTION GCCE     -fno-rtti

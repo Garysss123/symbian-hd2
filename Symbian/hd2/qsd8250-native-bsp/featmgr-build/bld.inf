@@ -1,0 +1,10 @@
+// Isolated HTCLEO build unit for the Feature Manager client and server.
+// The stock 58-entry client DLL frozen export table remains authoritative;
+// the server keeps its stock executable identity while fixing startup order.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/persistentdata/featuremgmt/featuremgr/group/featmgr.mmp
+/root/symbian3-full/sf/os/persistentdata/featuremgmt/featuremgr/group/featmgrserver.mmp

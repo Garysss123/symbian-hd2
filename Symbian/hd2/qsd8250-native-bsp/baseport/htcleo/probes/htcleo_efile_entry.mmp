@@ -1,0 +1,20 @@
+/* EFILE-only EKA2 startup library for the iteration-137 gate-3 probe. */
+
+TARGET          htcleo_efile_entry.lib
+TARGETTYPE      lib
+
+ALWAYS_BUILD_AS_ARM
+
+SOURCEPATH      .
+SOURCE          htcleo_efile_entry.cia
+
+SOURCEPATH      ../../../../../os/kernelhwsrv/kernel/eka/euser/epoc/arm
+SOURCE          uc_exe.cpp
+
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/include
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/euser/epoc/arm
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+CAPABILITY      all
+VENDORID        0x70000001
+SMPSAFE

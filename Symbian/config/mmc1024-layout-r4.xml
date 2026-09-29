@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<build xmlns="http://symbian.com/xml/build">
+  <var name="mmc1024_layout_r4">
+    <set name="CPP_LANG_OPTION" value="-x c++ -Wno-ctor-dtor-privacy -fno-rtti -include /root/symbian/sf/adapt/htcleo/baseport/htcleo/mmc/htcleo_sdcc_layout1024.h"/>
+  </var>
+</build>

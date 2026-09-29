@@ -1,0 +1,29 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -1935,6 +1935,12 @@ TInt TFSStartup::LocalDriveInit()
+     for(i=0;i<KMaxLocalDrives;i++)
+ 		iDriveMappingInfo[i].iLocalDriveNumber=KDriveInvalid;		// reset all local drives
+ 
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++    // HTCLEO_PRE_LOCAL_DRIVE_MAPPING_PROBE: split early extensions from mapping.
++    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++        : : : "r0", "memory");
++#endif
++
+ 	TInt r=ProcessLocalDriveMappingFile();
+ 	if (r!=KErrNone)
+ #if !defined(AUTODETECT_DISABLE)		
+@@ -1943,12 +1949,6 @@ TInt TFSStartup::LocalDriveInit()
+ 		Panic(ELitDriveMappingFileFail,r);
+ #endif		
+ 
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-    // HTCLEO_POST_LOCAL_DRIVE_MAPPING_PROBE: split mapping from system-drive setup.
+-    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-        : : : "r0", "memory");
+-#endif
+-
+ 	SetSystemDrive();
+ 		
+ #if defined(_LOCKABLE_MEDIA)	

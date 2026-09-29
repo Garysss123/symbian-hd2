@@ -1,0 +1,24 @@
+/* Stock ARM EFILE entry library for iteration 225 LoaderThread-ready probe. */
+
+TARGET          htcleo_efile_low_rom_pd_fix.lib
+TARGETTYPE      lib
+
+ALWAYS_BUILD_AS_ARM
+MACRO           __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+
+SOURCEPATH      .
+SOURCE          htcleo_efile_heap_result.cia
+
+SOURCEPATH      ../../../../../os/kernelhwsrv/kernel/eka/euser/epoc/arm
+SOURCE          uc_exe.cpp
+
+SOURCEPATH      ../../../../../os/kernelhwsrv/kernel/eka/compsupp/symaehabi
+SOURCE          callfirstprocessfn.cpp
+
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/include
+USERINCLUDE     ../../../../../os/kernelhwsrv/kernel/eka/euser/epoc/arm
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+CAPABILITY      all
+VENDORID        0x70000001
+SMPSAFE

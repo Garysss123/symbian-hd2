@@ -1,0 +1,11 @@
+// Isolated HTCLEO build unit for the AppArc server and application-list
+// scanner.  APSEXE itself is unchanged; it loads the rebuilt APSERV/APLIST
+// pair from the same ROM recipe.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/appsupport/appfw/apparchitecture/group/APLIST.MMP
+/root/symbian3-full/sf/mw/appsupport/appfw/apparchitecture/group/APSERV.MMP
+/root/symbian3-full/sf/mw/appsupport/appfw/apparchitecture/group/APSEXE.MMP

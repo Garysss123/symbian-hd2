@@ -1,0 +1,21 @@
+#include <variant.mmh>
+#include "kernel/kern_ext.mmh"
+
+TARGET          VariantTarget(epbussdiov,dll)
+TARGETTYPE      kext
+LINKAS          epbussdiov.dll
+
+SYMBIAN_BASE_SYSTEMINCLUDE(drivers)
+SYSTEMINCLUDE   ../specific
+USERINCLUDE     .
+
+SOURCEPATH      .
+SOURCE          htcleo_sdcc.cpp
+ALWAYS_BUILD_AS_ARM
+
+LIBRARY         epbussd.lib
+
+EPOCALLOWDLLDATA
+UID             0x1000008d 0x10286f40
+VENDORID        0x70000001
+CAPABILITY      all

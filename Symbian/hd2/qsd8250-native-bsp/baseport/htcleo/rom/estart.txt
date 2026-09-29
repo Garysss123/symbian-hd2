@@ -1,0 +1,15 @@
+# HTC Leo native local-drive mapping.
+# microSD partition 1 -> local drive 2 -> E: (existing boot/data volume)
+# microSD partition 2 -> local drive 1 -> C: (writable system volume)
+# generic MEDINT IRAM  -> local drive 0 -> D: (volatile scratch volume)
+
+C:  1  ELOCAL  FAT  0  FS_NOT_RUGGED
+D:  0  ELOCAL  FAT  0  FS_NOT_RUGGED
+E:  2  ELOCAL  FAT  0  FS_NOT_RUGGED
+
+# HTCLEO bring-up: the current kernel timer completion path does not wake the
+# FAT32 background scanner's courtesy User::After(), so the first C: write can
+# wait forever.  Use the stock synchronous FAT32 free-space scan until the
+# QSD8250 timer path is repaired; this changes scan scheduling, not FAT layout.
+[DriveC]
+FAT_FAT32_AsynchMount 0

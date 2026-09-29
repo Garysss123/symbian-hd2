@@ -1,0 +1,32 @@
+# HomeScreen ECom resources absent from the stock PDK 3.0.4 STEM SPI.
+# Keep one lowercase basename per line, including the .rsc suffix.
+ai3xmluimain.rsc
+ai3natiui.rsc
+aicontainer.rsc
+xn3textfactory.rsc
+xn3viewfactory.rsc
+xn3bitmapfactory.rsc
+xn3menufactory.rsc
+xn3domvisitor.rsc
+xn3popupfactory.rsc
+xn3newstickerfactory.rsc
+xn3volumecontrolfactory.rsc
+xn3clockfactory.rsc
+xn3nppluginfactory.rsc
+xn3texteditorfactory.rsc
+xn3animationfactory.rsc
+hspsdefinitionengine.rsc
+hspsprovider.rsc
+cpclient.rsc
+chswiplugin.rsc
+chfactorysettingsplugin.rsc
+actionhandlerplugins.rsc
+actionhandlerservice.rsc
+bsservice.rsc
+widgetmanager.rsc
+mcsplugin.rsc
+mcspluginhandler.rsc
+mcspluginsettings.rsc
+sapidataplugin.rsc
+wrtdataplugin.rsc
+xmlenginesaxplugin.rsc

@@ -1,0 +1,13 @@
+diff --git a/sf/os/devicesrv/sysstatemgmt/systemstatemgr/ssm/src/main.cpp b/sf/os/devicesrv/sysstatemgmt/systemstatemgr/ssm/src/main.cpp
+--- a/sf/os/devicesrv/sysstatemgmt/systemstatemgr/ssm/src/main.cpp
++++ b/sf/os/devicesrv/sysstatemgmt/systemstatemgr/ssm/src/main.cpp
+@@ -38,6 +38,9 @@ static void MainL()
+ 		}
+ 	
+ 	CSsmServer* server = CSsmServer::NewLC(ESsmStartup);
++	// ESTART waits for this process rendezvous before it can finish Gate 7.
++	// Signal only after the SSM server and startup domain are ready.
++	RProcess::Rendezvous(KErrNone);
+ 	sched->Start();
+ 
+	CleanupStack::PopAndDestroy(server);

@@ -1,0 +1,16 @@
+diff --git a/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp b/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
+--- a/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
++++ b/kernel/eka/memmodel/epoc/multiple/arm/xmmu.cpp
+@@ -703,7 +703,13 @@ void ArmMmu::Init1()
+ 	__KTRACE_OPT2(KBOOT,KMMU,Kern::Printf("CacheTypeRegister = %08x",ctr));
+ 	__NK_ASSERT_ALWAYS((ctr>>29)==4);	// check ARMv7 format
+ 	TUint l1ip = (ctr>>14)&3;			// L1 instruction cache indexing and tagging policy
++#if !defined(__CPU_QSD8250__)
+ 	__NK_ASSERT_ALWAYS(l1ip>=2);		// check I cache is physically tagged
++#else
++	// Qualcomm Scorpion reports CTR.L1Ip == 1.  The existing non-PIPT path
++	// below already applies conservative VIPT colouring; rejecting the CPU
++	// here was the only incompatible assumption observed on HTC Leo.
++#endif
+ 
+ 	TUint32 clidr = InternalCache::LevelIDRegister();

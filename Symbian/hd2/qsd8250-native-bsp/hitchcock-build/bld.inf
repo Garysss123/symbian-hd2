@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the Hitchcock core-toolkit DLL.  The target
+// already exists in the full ROM; this unit rebuilds only hitchcock.dll so its
+// process-attach entry point can emit durable, target-specific diagnostics.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/uiaccelerator/uiacceltk/hitchcock/coretoolkit/group/coretoolkit.mmp

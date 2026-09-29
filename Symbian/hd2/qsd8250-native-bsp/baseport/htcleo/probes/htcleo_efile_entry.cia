@@ -1,0 +1,18 @@
+/*
+ * HTC Leo iteration-137 EFILE-only process entry.
+ *
+ * Keep the stock EKA2 executable entry implementation byte-for-byte except
+ * for its version-marker instruction.  The deliberate ARM UDF is handled by
+ * the QSD8250 kernel's probe path, which paints the gate-3 signature, advances
+ * the saved PC by four bytes and resumes at the stock CMP instruction.
+ *
+ * This translation unit is linked directly into EFILE.  Its _E32Startup
+ * definition prevents the linker from extracting uc_exe_.o from eexe.lib,
+ * while the stock RunThread implementation still comes from eexe.lib.
+ */
+#include <u32std.h>
+
+#undef EKA2_ENTRY_POINT_VERSION_IDENTIFIER
+#define EKA2_ENTRY_POINT_VERSION_IDENTIFIER asm(".word 0xe7f000f0")
+
+#include "uc_exe.cia"

@@ -1,0 +1,5 @@
+//899 isolated CDL engine build. No CdlServer or tests are built.
+PRJ_PLATFORMS
+ARMV5
+PRJ_MMPFILES
+CdlEngine.mmp

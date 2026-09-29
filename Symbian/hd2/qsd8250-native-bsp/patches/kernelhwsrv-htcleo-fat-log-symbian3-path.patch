@@ -1,0 +1,14 @@
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -52,9 +52,7 @@ static void HtcleoWriteFatBootRecord()
+ 		return;
+ 		}
+ 
+-	_LIT(KLogDir,"E:\\HTCLEO\\");
+-	_LIT(KLogPath,"E:\\HTCLEO\\BOOTLOG.TXT");
+-	(void)fs.MkDirAll(KLogDir);
++	_LIT(KLogPath,"E:\\Symbian3\\BOOTLOG.TXT");
+ 	_LIT8(KBody,"HTCLEO_FAT_LOG_V1\r\nRECORD_VERSION=00000001\r\nGATE7=PASS\r\nF32_E_DRIVE=READY\r\n");
+ 	TBuf8<160> record(KBody);
+ 	record.AppendFormat(_L8("CRC32=%08X\r\n"),HtcleoFatLogCrc32(KBody));

@@ -1,0 +1,14 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+index 21fcf88..885a7b2 100644
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2226,9 +2226,7 @@ void TFSStartup::Run()
+     // Seperate ScanDrive from MountDrive; this allows drives to be mounted
+     // followed by locale loading. Scanning drives after locale is set thus can
+     // recognise non-english filename.
+-#ifndef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+     MountRemovableDrives();
+-#endif
+ 
+ #ifdef _DEBUG
+ 	// display the setting for all drives

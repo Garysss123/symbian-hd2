@@ -1,0 +1,5 @@
+// 911: isolated FileManager executable only; no resource/sibling builds.
+PRJ_PLATFORMS
+ARMV5
+PRJ_MMPFILES
+filemanager.mmp

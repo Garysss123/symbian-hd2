@@ -1,0 +1,23 @@
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -233,7 +233,7 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 	TInt mode=pR->iCpsr & EMaskMode;
+ 
+ #if defined(__CPU_QSD8250__) && defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-	if (mode==EUserMode &&
++	if ((mode==EUserMode || mode==ESvcMode) &&
+ 		(pR->iExcCode==EArmExceptionPrefetchAbort ||
+ 		 pR->iExcCode==EArmExceptionUndefinedOpcode) &&
+ 		pR->iR15>=0x12200000u && pR->iR15<0x15800000u)
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2248,7 +2248,6 @@ TInt TFSStartup::MountRemovableDrives()
+         // C000xxxx identifies Connect; low 16 bits are abs(error).
+         htcleoDrive2CapsResult=(TInt)(0xc0000000u | ((TUint32)(-htcleoDrive2Connect)&0xffffu));
+         }
+-    asm volatile("mov r0,%0\n\t.word 0xe7f000f0" : : "r"(htcleoDrive2CapsResult) : "r0", "memory");
+ #endif
+     return KErrNone;
+     }

@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the active STEM Avkon implementation.
+// The ROM maps stem_avkon.dll to sys\bin\avkon.dll.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/incubator/stemkit/breakdeps/avkon.mmp

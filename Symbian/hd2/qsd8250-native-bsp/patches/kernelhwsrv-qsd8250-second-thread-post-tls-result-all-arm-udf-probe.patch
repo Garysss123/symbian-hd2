@@ -1,0 +1,254 @@
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,84 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++/* Iteration 261: post-Run-return checkpoint with guaranteed UDF #0. */
++extern "C" void HtcleoEstartInitCompleteFixedExceptionScreenProbe(TUint32 aValue, TInt aExcCode)
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkBlue = 0x0010;
++	const TUint16 KDarkPurple = 0x4008;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = aExcCode == EArmExceptionPrefetchAbort ? KDarkBlue : KDarkPurple;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	const TUint KStartX = 48;
++	const TUint KStartY = 344;
++	for (TUint digit = 0; digit < 8; ++digit)
++		{
++		const TUint nibble = (aValue >> ((7 - digit) * 4)) & 0x0fu;
++		const TBool segA = nibble == 0 || nibble == 2 || nibble == 3 || nibble == 5 ||
++			nibble == 6 || nibble == 7 || nibble == 8 || nibble == 9 ||
++			nibble == 10 || nibble == 12 || nibble == 14 || nibble == 15;
++		const TBool segB = nibble == 0 || nibble == 1 || nibble == 2 || nibble == 3 ||
++			nibble == 4 || nibble == 7 || nibble == 8 || nibble == 9 || nibble == 10;
++		const TBool segC = nibble == 0 || nibble == 1 || nibble == 3 || nibble == 4 ||
++			nibble == 5 || nibble == 6 || nibble == 7 || nibble == 8 ||
++			nibble == 9 || nibble == 10 || nibble == 11 || nibble == 13;
++		const TBool segD = nibble == 0 || nibble == 2 || nibble == 3 || nibble == 5 ||
++			nibble == 6 || nibble == 8 || nibble == 9 || nibble == 11 ||
++			nibble == 12 || nibble == 13 || nibble == 14;
++		const TBool segE = nibble == 0 || nibble == 2 || nibble == 6 || nibble == 8 ||
++			nibble == 10 || nibble == 11 || nibble == 12 || nibble == 13 ||
++			nibble == 14 || nibble == 15;
++		const TBool segF = nibble == 0 || nibble == 4 || nibble == 5 || nibble == 6 ||
++			nibble == 8 || nibble == 9 || nibble == 10 || nibble == 11 ||
++			nibble == 12 || nibble == 14 || nibble == 15;
++		const TBool segG = nibble == 2 || nibble == 3 || nibble == 4 || nibble == 5 ||
++			nibble == 6 || nibble == 8 || nibble == 9 || nibble == 10 ||
++			nibble == 11 || nibble == 13 || nibble == 14 || nibble == 15;
++		for (TUint py = 0; py < 112; ++py)
++			{
++			for (TUint px = 0; px < 42; ++px)
++				{
++				const TBool lit =
++					(segA && py < 8 && px >= 7 && px < 35) ||
++					(segB && px >= 34 && px < 42 && py >= 7 && py < 56) ||
++					(segC && px >= 34 && px < 42 && py >= 56 && py < 105) ||
++					(segD && py >= 104 && px >= 7 && px < 35) ||
++					(segE && px < 8 && py >= 56 && py < 105) ||
++					(segF && px < 8 && py >= 7 && py < 56) ||
++					(segG && py >= 52 && py < 60 && px >= 7 && px < 35);
++				if (lit)
++					fb[(KStartY + py) * KWidth + KStartX + digit * 48 + px] = KYellow;
++				}
++			}
++		}
++	volatile TUint32* const mdp = (volatile TUint32*)0xc6300000u;
++	mdp[0x90004u >> 2] = (KHeight << 16) | KWidth;
++	mdp[0x90008u >> 2] = 0x03839000u;
++	mdp[0x9000cu >> 2] = KWidth * 2u;
++	mdp[0x90010u >> 2] = 0u;
++	mdp[0x90u >> 2] = 0u;
++	mdp[0x94u >> 2] = 0x556500c3u;
++	__e32_io_completion_barrier();
++	mdp[0x44u >> 2] = 0u;
++	__e32_io_completion_barrier();
++	for (;;)
++		{}
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -150,6 +228,18 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 
+ 	TArmExcInfo* pR=(TArmExcInfo*)aPtr;
+ 	TInt mode=pR->iCpsr & EMaskMode;
++
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++	if (mode==EUserMode &&
++		(pR->iExcCode==EArmExceptionPrefetchAbort ||
++		 pR->iExcCode==EArmExceptionUndefinedOpcode) &&
++		pR->iR15>=0x12200000u && pR->iR15<0x15800000u)
++		{
++		const TUint32 value = pR->iExcCode==EArmExceptionPrefetchAbort ?
++			pR->iFaultStatus : pR->iR0;
++		HtcleoEstartInitCompleteFixedExceptionScreenProbe(value, pR->iExcCode);
++		}
++#endif
+ 
+ 	TBool faultHandled = EFalse;
+ 
+diff --git a/userlibandfileserver/fileserver/estart/estart.mmp b/userlibandfileserver/fileserver/estart/estart.mmp
+--- a/userlibandfileserver/fileserver/estart/estart.mmp
++++ b/userlibandfileserver/fileserver/estart/estart.mmp
+@@ -26,6 +26,9 @@ CAPABILITY		TCB WriteDeviceData DiskAdmin ProtServ AllFiles PowerMgmt
+ 
+ TARGETTYPE		exe
+ 
++ALWAYS_BUILD_AS_ARM
++MACRO			__HTCLEO_LOW_ROM_PD_FIX_PROBE__
++
+ 
+ SOURCEPATH	    ../estart
+ SOURCE			estart.cpp estartmain.cpp
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,13 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++MACRO			__HTCLEO_LOW_ROM_PD_FIX_PROBE__
++ALWAYS_BUILD_AS_ARM
++FIRSTLIB		htcleo_efile_low_rom_pd_fix.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+diff --git a/userlibandfileserver/fileserver/sfile/sf_cache.cpp b/userlibandfileserver/fileserver/sfile/sf_cache.cpp
+--- a/userlibandfileserver/fileserver/sfile/sf_cache.cpp
++++ b/userlibandfileserver/fileserver/sfile/sf_cache.cpp
+@@ -722,6 +722,8 @@ TInt CheckLoaderCacheInit()
+ 		{
+ 		__IF_DEBUG(Printf("Refreshing cache and adding notifications after FS initialisation"));
+ 		r = RefreshDriveInfo();						// this is to provide an extra refresh to explicitly find
++#ifndef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+ 		r = AddNotifications();						// all drives set up during FS initialisation
++#endif
+ 		gInitCacheCheckDrivesAndAddNotifications = ETrue;	
+ 		}
+@@ -729,6 +729,22 @@ TInt RImageFinder::SearchSingleDir()
+ 	__IF_DEBUG(Printf("SearchSingleDir %S drive %d", &iCurrentPath, iCurrentDrive));
+ 
+ 	TDriveCacheHeader* pDH = gDriveFileNamesCache[iCurrentDrive];
++#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
++	if (!pDH && iCurrentDrive==EDriveZ)
++		{
++		TDriveInfo driveInfo;
++		if (gTheLoaderFs.Drive(driveInfo, EDriveZ)==KErrNone)
++			{
++			pDH = new TDriveCacheHeader;
++			if (pDH)
++				{
++				pDH->iDriveAtt = driveInfo.iDriveAtt;
++				pDH->iDriveNumber = EDriveZ;
++				gDriveFileNamesCache[EDriveZ] = pDH;
++				}
++			}
++		}
++#endif
+ 	if (!pDH)
+ 		{
+ 		__IF_DEBUG(Printf("No such drive"));
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -405,5 +405,10 @@ TInt TFSStartup::InitialiseHAL()
+ 	{
++#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
++	// ROM-only bring-up has no writable hal.dat to restore.  Avoid starting a
++	// secondary process through the not-yet-proven loader path.
++	return KErrNone;
++#endif
+ 	RProcess process;
+ 	TInt result = process.Create(_L("HALSettings.exe"), _L("INITIALISE"));
+ 	if(result != KErrNone)
+ 		return result;
+@@ -450,7 +455,15 @@ on the 1st error, this function keeps going through all the valid drives.
+ TBool TFSStartup::CreateServer(const TDriveList& aDrives, const TDesC& aRootName)
+ 	{
+ 	RProcess ws;
++#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
++	TFileName htcleoRomName;
++	htcleoRomName = KServerPathSysBin();
++	htcleoRomName += aRootName;
++	htcleoRomName[0] = (TText)'Z';
++	TInt r=ws.Create(htcleoRomName,KNullDesC,TUidType());
++#else
+ 	TInt r=ws.Create(aRootName, KNullDesC);
++#endif
+ 	if (r!=KErrNone)
+ 		{
+ 		TFileName name;
+@@ -2202,16 +2214,20 @@ TInt TFSStartup::Run()
+ 	InitialiseHAL();
+ 
+ 	
++#ifndef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+ 	r=LoadCodePageDll();
+ 	if(r != KErrNone)
+ 	{
+ 	DEBUGPRINT1("\nLoadCodePageDll() FAILED !!! : returned : %d", r);
+ 	}
++#endif
+ 
+     // Seperate ScanDrive from MountDrive; this allows drives to be mounted
+     // followed by locale loading. Scanning drives after locale is set thus can
+     // recognise non-english filename.
++#ifndef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+     MountRemovableDrives();
++#endif
+ 
+ #ifdef _DEBUG
+ 	// display the setting for all drives
+@@ -2248,11 +2266,12 @@ TInt TFSStartup::Run()
+ 	r=iFs.DriveList(list);
+ 	
+ 	// Create Domain Manager Process
+-	if (!CreateServer(list,KDmManagerFileNameLit))
++	TBool dmCreated=CreateServer(list,KDmManagerFileNameLit);
++	if (!dmCreated)
+ 		Panic(ELitNoDM, KErrNotFound);
+ 
+ 	// Wait until Domain Manager completes its intialization 
+ 	r=RDmDomainManager::WaitForInitialization();
+ 	__ASSERT_ALWAYS(r==KErrNone,Panic(ELitDMInitFail,r));
+ 	// Now File Server can connect to Domain Manager
+ #endif
+diff --git a/userlibandfileserver/fileserver/estart/estartmain.cpp b/userlibandfileserver/fileserver/estart/estartmain.cpp
+--- a/userlibandfileserver/fileserver/estart/estartmain.cpp
++++ b/userlibandfileserver/fileserver/estart/estartmain.cpp
+@@ -27,7 +27,10 @@ GLDEF_C TInt E32Main()
+ 	
+ 	fsStart.Run();
+ 
+-	fsStart.StartSystem();
++	TInt r=fsStart.StartSystem();
++#ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
++	asm volatile("mov r0,%0\n\t.word 0xe7f000f0" : : "r"(r) : "r0", "memory");
++#endif
+ 			
+ 	fsStart.Close();
+ 	return(0);

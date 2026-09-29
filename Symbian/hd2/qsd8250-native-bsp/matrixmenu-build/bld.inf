@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the first visible S60 shell lifecycle trace.
+// Only matrixmenu.exe is rebuilt; the verified 492 AppArc and UI-server
+// binaries remain byte-identical.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/app/homescreen/menufw/menufwui/matrixmenu/group/matrixmenu.mmp

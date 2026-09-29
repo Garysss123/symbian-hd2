@@ -1,0 +1,7 @@
+/*
+ * HTC Leo iteration-139 EFILE entry.
+ *
+ * This remains the stock EKA2 ARM process entry.  Its companion uc_exe.cpp
+ * object carries the sole probe after SetupThreadHeap and DllSetTls succeed.
+ */
+#include "uc_exe.cia"

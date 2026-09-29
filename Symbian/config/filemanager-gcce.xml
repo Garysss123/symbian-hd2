@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- Original Avkon/AIW headers contain redundant in-class qualification.
+     Limit GCCE permissiveness to the isolated FileManager executable build. -->
+<build xmlns="http://symbian.com/xml/build">
+  <var name="filemanager_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+  </var>
+</build>

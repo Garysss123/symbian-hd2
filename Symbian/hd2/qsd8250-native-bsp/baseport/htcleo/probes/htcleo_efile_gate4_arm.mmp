@@ -1,0 +1,15 @@
+/* ARM helper linked only into EFILE for iteration 144. */
+
+TARGET          htcleo_efile_gate4_arm.lib
+TARGETTYPE      lib
+
+ALWAYS_BUILD_AS_ARM
+
+SOURCEPATH      .
+SOURCE          htcleo_efile_gate4_arm.cpp
+
+OS_LAYER_SYSTEMINCLUDE_SYMBIAN
+
+CAPABILITY      all
+VENDORID        0x70000001
+SMPSAFE

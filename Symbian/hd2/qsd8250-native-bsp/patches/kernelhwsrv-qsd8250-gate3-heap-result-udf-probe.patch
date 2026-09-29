@@ -1,0 +1,154 @@
+diff --git a/kernel/eka/euser/epoc/arm/uc_exe.cpp b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+index d76fdf9..a84172f 100644
+--- a/kernel/eka/euser/epoc/arm/uc_exe.cpp
++++ b/kernel/eka/euser/epoc/arm/uc_exe.cpp
+@@ -92,6 +92,20 @@ void RunThread(TBool aNotFirst, SThreadCreateInfo& aInfo)
+ #endif
+ 	TInt r = UserHeap::SetupThreadHeap(aNotFirst, cinfo);
+ 
++#ifdef __HTCLEO_EFILE_HEAP_RESULT_UDF_PROBE__
++	if (!aNotFirst)
++		{
++		/* Iteration 141: capture SetupThreadHeap's return value in saved R6. */
++		asm volatile(
++			"mov r6, %0\n"
++			".word 0xe7f000f0\n"
++			".word 0xe3540007\n"
++			".word 0xea000000\n"
++			".word 0x48313431\n"
++			: : "r" (r) : "r6", "cc");
++		}
++#endif
++
+ 	if (r==KErrNone)
+ 		r = UserSvr::DllSetTls(KGlobalDestructorTlsKey, KDllUid_Special, (TAny*)globalDestructorFunc);
+ 
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+index 85b6a50..991295d 100644
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,86 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_HEAP_RESULT_UDF_PROBE__)
++/* Iteration 141's sole renderer: SetupThreadHeap return-code display. */
++static void HtcleoGate3HeapResultScreenProbe(TInt aResult)
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	const TUint16 KBackground = aResult == KErrNone ? 0x0200 : 0x4000;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++	TUint digit = aResult < 0 ? (TUint)(-aResult) : (TUint)aResult;
++	TUint segments;
++	switch (digit)
++		{
++		case 0: segments = 0x3f; break;
++		case 1: segments = 0x06; break;
++		case 2: segments = 0x5b; break;
++		case 3: segments = 0x4f; break;
++		case 4: segments = 0x66; break;
++		case 5: segments = 0x6d; break;
++		case 6: segments = 0x7d; break;
++		case 7: segments = 0x07; break;
++		case 8: segments = 0x7f; break;
++		case 9: segments = 0x6f; break;
++		default: segments = 0x79; break; /* E */
++		}
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KBackground;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			const TBool a = (segments & 0x01) && y >= 220 && y < 248 && x >= 160 && x < 320;
++			const TBool b = (segments & 0x02) && x >= 292 && x < 320 && y >= 220 && y < 384;
++			const TBool c = (segments & 0x04) && x >= 292 && x < 320 && y >= 384 && y < 548;
++			const TBool d = (segments & 0x08) && y >= 520 && y < 548 && x >= 160 && x < 320;
++			const TBool e = (segments & 0x10) && x >= 160 && x < 188 && y >= 384 && y < 548;
++			const TBool f = (segments & 0x20) && x >= 160 && x < 188 && y >= 220 && y < 384;
++			const TBool g = (segments & 0x40) && y >= 370 && y < 398 && x >= 160 && x < 320;
++			if (a || b || c || d || e || f || g)
++				colour = KYellow;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate3HeapResultUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xe7f000f0u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe3540007u) /* cmp r4,#7 */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xea000000u) /* b over unique-ID word */
++		return EFalse;
++	next.iR15 += 4;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x48313431u) /* ASCII H141 */
++		return EFalse;
++
++	HtcleoGate3HeapResultScreenProbe((TInt)aContext->iR6);
++	aContext->iR15 += 4; /* Resume at the untouched CMP after the ARM UDF. */
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +257,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE3_HEAP_RESULT_UDF_PROBE__)
++	if (HtcleoHandleGate3HeapResultUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+index b92d38b..593e537 100644
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,11 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++FIRSTLIB		htcleo_efile_heap_result.lib
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+@@ -36,7 +37,3 @@ macro SYMBIAN_FTRACE_ENABLE_UDEB
+ 
+ #include "efile.mmh"
+ 
+-
+-
+-
+-

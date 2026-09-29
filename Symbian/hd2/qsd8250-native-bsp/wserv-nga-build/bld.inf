@@ -1,0 +1,8 @@
+// Isolated HTCLEO build unit for the NGA Window Server executable.
+// This avoids rebuilding unrelated window-server tests and switch binaries.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/os/graphics/windowing/windowserver/group/openwfc/WServ_nga.MMP

@@ -1,0 +1,59 @@
+diff --git a/kernel/eka/kernel/exstart.cpp b/kernel/eka/kernel/exstart.cpp
+--- a/kernel/eka/kernel/exstart.cpp
++++ b/kernel/eka/kernel/exstart.cpp
+@@ -30,5 +30,44 @@ void Fault(TStartFault aFault)
+ 	Kern::Fault("EXSTART",aFault);
+ 	}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE2_SCREEN_PROBE__)
++/*
++ * Iteration 135's one non-halting screen checkpoint.  The bootstrap maps the
++ * fixed HTC Leo framebuffer as the fifth strongly ordered hardware bank at
++ * 0xc6400000.  Paint only after EXSTART has created and resumed EFILE: a hit
++ * therefore proves the gate-2 kernel-server/EXSTART handoff, while a miss
++ * leaves the MAGLDR transport's four-colour screen intact.
++ */
++static void HtcleoGate2ScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KBlue = 0x001f;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KBlue;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block digit 2, centred in portrait orientation. */
++			const TBool top = y >= 240 && y < 272 && x >= 144 && x < 336;
++			const TBool upperRight = x >= 304 && x < 336 && y >= 272 && y < 384;
++			const TBool middle = y >= 384 && y < 416 && x >= 144 && x < 336;
++			const TBool lowerLeft = x >= 144 && x < 176 && y >= 416 && y < 528;
++			const TBool bottom = y >= 528 && y < 560 && x >= 144 && x < 336;
++			if (top || upperRight || middle || lowerLeft || bottom)
++				colour = KYellow;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++#endif
++
+ void StartSecondary(TAny*);
+ GLDEF_D TDfc StartSecondaryDfc(&StartSecondary, NULL, Kern::SvMsgQue(), 0);
+@@ -127,6 +166,10 @@ void StartSecondary(TAny*)
+ 	pP->Resume();
+ 	NKern::UnlockSystem();
+ 	__KTRACE_OPT(KBOOT,Kern::Printf("Resumed secondary"));
++
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE2_SCREEN_PROBE__)
++	HtcleoGate2ScreenProbe();
++#endif
+ 	}
+ 
+ DECLARE_STANDARD_EXTENSION()

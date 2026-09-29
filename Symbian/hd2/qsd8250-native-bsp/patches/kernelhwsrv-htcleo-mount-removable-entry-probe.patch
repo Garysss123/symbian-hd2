@@ -1,0 +1,28 @@
+diff --git a/userlibandfileserver/fileserver/estart/estart.cpp b/userlibandfileserver/fileserver/estart/estart.cpp
+--- a/userlibandfileserver/fileserver/estart/estart.cpp
++++ b/userlibandfileserver/fileserver/estart/estart.cpp
+@@ -2169,6 +2169,12 @@ TInt TFSStartup::MountRemovableDrives()
+     {
+     DEBUGPRINT("TFSStartup::MountRemovableDrives");
+ 
++#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
++    // HTCLEO_MOUNT_REMOVABLE_ENTRY_PROBE: bracket the mapping loop entry.
++    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
++        : : : "r0", "memory");
++#endif
++
+ 	for (TInt i=0;i<iMapCount;i++)
+ 		{
+ 		SLocalDriveMappingInfo* infoPtr = &iDriveMappingInfo[i];
+@@ -2184,11 +2190,6 @@ TInt TFSStartup::MountRemovableDrives()
+ 			i--;	// Re-attempt to mount the same drive now that the mappings are swapped		
+ 			}
+ 		}
+-#if defined(__HTCLEO_LOW_ROM_PD_FIX_PROBE__)
+-    // HTCLEO_POST_REMOVABLE_MOUNT_LOOP_PROBE: split mapping loop from Connect.
+-    asm volatile("mov r0,#0\n\t.word 0xe7f000f0"
+-        : : : "r0", "memory");
+-#endif
+ #ifdef __HTCLEO_LOW_ROM_PD_FIX_PROBE__
+     // Iteration 308 distinguishes a missing local-media registration from a
+     // registered drive whose capabilities do not describe a removable slot.

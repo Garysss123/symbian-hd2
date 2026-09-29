@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  The released Avkon headers contain legacy redundant in-class qualification
+  accepted by the original compiler. Relax only the isolated stem_avkon build;
+  runtime code generation and the frozen export definition remain unchanged.
+-->
+<build xmlns="http://symbian.com/xml/build"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://symbian.com/xml/build ../../schema/build/2_0.xsd">
+  <var name="avkon_permissive">
+    <set name="CC_ERRORS_CONTROL_OPTION" value="-fpermissive"/>
+    <!-- GCCE 4.4 emits 27 frozen template exports as weak and keeps three
+         NONSHARABLE destructor exports hidden.  The popup RTTI/vtable also
+         has four duplicate COMDAT definitions.  The wrapper promotes only
+         those exact pre-existing symbols for vintage elf2e32. -->
+    <set name="CC" value="/path/to/hd2-legacy-lab/Symbian/scripts/htcleo-gcce-avkon-cc-wrapper.sh"/>
+    <!-- The old link step garbage-collects the popup-list template RTTI and
+         vtable before elf2e32 applies the frozen DEF.  Retain only those two
+         already-defined ABI objects; no implementation or runtime path is
+         replaced. -->
+    <set name="EXTRA_LD_OPTION"
+         value="-Wl,--undefined=_ZTI17AknPopupListEmptyI24CEikFormattedCellListBoxE -Wl,--undefined=_ZTV17AknPopupListEmptyI24CEikFormattedCellListBoxE"/>
+  </var>
+</build>

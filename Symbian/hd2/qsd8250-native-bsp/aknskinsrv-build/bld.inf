@@ -1,0 +1,9 @@
+// Isolated HTCLEO build unit for the AknSkinSrv client/server DLL.
+// Only AKNSKINSRV.dll is rebuilt; AknSkinSrv.exe and AKNSKINS.dll remain the
+// verified iteration-458 parent versions.
+
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/uiresources/skins/AknSkins/group/AknSkinSrv.mmp

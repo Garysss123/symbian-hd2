@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<build xmlns="http://symbian.com/xml/build">
+  <var name="mmc1024_nortti">
+    <set name="CPP_LANG_OPTION" value="-x c++ -Wno-ctor-dtor-privacy -fno-rtti"/>
+  </var>
+</build>

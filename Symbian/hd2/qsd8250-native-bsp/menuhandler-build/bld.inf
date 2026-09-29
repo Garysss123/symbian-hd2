@@ -1,0 +1,6 @@
+// Existing ROM plugin only; isolated launch-path observation.
+PRJ_PLATFORMS
+ARMV5
+
+PRJ_MMPFILES
+/root/symbian3-full/sf/mw/homescreensrv/menucontentsrv/group/mcsmenuhandler.mmp

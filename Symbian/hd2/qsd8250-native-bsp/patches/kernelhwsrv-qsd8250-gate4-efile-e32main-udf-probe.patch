@@ -1,0 +1,122 @@
+diff --git a/kernel/eka/kernel/arm/ckernel.cpp b/kernel/eka/kernel/arm/ckernel.cpp
+--- a/kernel/eka/kernel/arm/ckernel.cpp
++++ b/kernel/eka/kernel/arm/ckernel.cpp
+@@ -141,6 +141,67 @@ extern "C" {
+ extern SFullArmRegSet DefaultRegSet;
+ }
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE4_UDF_PROBE__)
++/* Iteration 138's sole non-halting renderer, qualified inside EFILE E32Main. */
++static void HtcleoGate4EfileE32MainScreenProbe()
++	{
++	const TUint KWidth = 480;
++	const TUint KHeight = 800;
++	const TUint16 KDarkCyan = 0x03ef;
++	const TUint16 KWhite = 0xffff;
++	const TUint16 KYellow = 0xffe0;
++	volatile TUint16* const fb = (volatile TUint16*)0xc6400000u;
++
++	for (TUint y = 0; y < KHeight; ++y)
++		{
++		for (TUint x = 0; x < KWidth; ++x)
++			{
++			TUint16 colour = KDarkCyan;
++			if (x < 8 || x >= KWidth - 8 || y < 8 || y >= KHeight - 8)
++				colour = KWhite;
++			/* A large block digit 4, centred in portrait orientation. */
++			const TBool left = x >= 144 && x < 176 && y >= 256 && y < 432;
++			const TBool middle = x >= 144 && x < 336 && y >= 400 && y < 432;
++			const TBool right = x >= 304 && x < 336 && y >= 224 && y < 576;
++			if (left || middle || right)
++				colour = KYellow;
++			fb[y * KWidth + x] = colour;
++			}
++		}
++	__e32_io_completion_barrier();
++	}
++
++static TBool HtcleoHandleGate4EfileE32MainUdf(TArmExcInfo* aContext, TInt aMode)
++	{
++	if (aMode != EUserMode ||
++		aContext->iExcCode != EArmExceptionUndefinedOpcode ||
++		!(aContext->iCpsr & ECpuThumb))
++		return EFalse;
++
++	GetUndefinedInstruction(aContext);
++	if (aContext->iFaultAddress != 0xde44u)
++		return EFalse;
++
++	TArmExcInfo next = *aContext;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x2c02u) /* Thumb cmp r4,#2 */
++		return EFalse;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0xe000u) /* Thumb b over unique-ID halfword */
++		return EFalse;
++	next.iR15 += 2;
++	GetUndefinedInstruction(&next);
++	if (next.iFaultAddress != 0x4834u) /* gate-4 unique ID */
++		return EFalse;
++
++	HtcleoGate4EfileE32MainScreenProbe();
++	aContext->iR15 += 2; /* Resume at the untouched CMP after the Thumb UDF. */
++	return ETrue;
++	}
++#endif
++
+ #ifdef __CPU_HAS_VFP
+ GLREF_C TInt HandleVFPOperation(TAny* aPtr);
+ #endif
+@@ -177,6 +238,11 @@ void Exc::Dispatch(TAny* aPtr, NThread*)
+ 		return;
+ 		}
+ 
++#if defined(__CPU_QSD8250__) && defined(__HTCLEO_GATE4_UDF_PROBE__)
++	if (HtcleoHandleGate4EfileE32MainUdf(pR, mode))
++		return;
++#endif
++
+ 	if (mode==ESvcMode && pR->iExcCode==EArmExceptionDataAbort && IsMagic(pR->iR15))
+ 		{
+ 		// skip instruction that caused the exception, set the zero flag and place faulted address in r12
+diff --git a/userlibandfileserver/fileserver/sfile/efile.mmp b/userlibandfileserver/fileserver/sfile/efile.mmp
+--- a/userlibandfileserver/fileserver/sfile/efile.mmp
++++ b/userlibandfileserver/fileserver/sfile/efile.mmp
+@@ -23,10 +23,11 @@
+ 
+ TARGET			efile.exe
+ 
+-#include "f32caps.mmh"  // Capabilities of File Server process
+-#include "f32.mmh"  	// Generic definitions for the whole f32 component
++#include "../group/f32caps.mmh"  // Capabilities of File Server process
++#include "../group/f32.mmh"  	// Generic definitions for the whole f32 component
+ 
+ MACRO			SYMBIAN_PRIVATE_EFSRV
++MACRO			__HTCLEO_EFILE_E32MAIN_UDF_PROBE__
+ 
+ // By default, tracepoints are compiled in to UDEB version only
+ #ifdef SYMBIAN_TRACE_SYSTEM_INCLUDE
+diff --git a/userlibandfileserver/fileserver/sfile/sf_main.cpp b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+--- a/userlibandfileserver/fileserver/sfile/sf_main.cpp
++++ b/userlibandfileserver/fileserver/sfile/sf_main.cpp
+@@ -534,6 +534,18 @@ TInt E32Main()
+ // The file server.
+ //
+ 	{
++#ifdef __HTCLEO_EFILE_E32MAIN_UDF_PROBE__
++	/*
++	 * Iteration 138's first E32Main source action.  The kernel validates all
++	 * four halfwords, paints gate 4, skips only the UDF and resumes at the CMP.
++	 */
++	asm volatile(
++		".short 0xde44\n"
++		".short 0x2c02\n"
++		".short 0xe000\n"
++		".short 0x4834\n"
++		: : : "cc");
++#endif
+ 	if (ServerIsRunning())
+ 		return(KErrNone);
+ 
